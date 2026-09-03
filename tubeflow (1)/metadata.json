@@ -1,6 +1,0 @@
-{
-  "name": "Tubeflow",
-  "description": "Fast, high-fidelity music search and MP3/MP4 downloader with trending tracks, instant audio preview, and direct downloads.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
