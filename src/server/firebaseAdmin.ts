@@ -1,7 +1,9 @@
 import fs from 'fs';
 import path from 'path';
-import { initializeApp, getApps, cert, applicationDefault, App, ServiceAccount } from 'firebase-admin/app';
-import { getAuth, Auth, DecodedIdToken } from 'firebase-admin/auth';
+import type { App, ServiceAccount } from 'firebase-admin/app';
+import { initializeApp, getApps, cert, applicationDefault } from 'firebase-admin/app';
+import type { Auth, DecodedIdToken } from 'firebase-admin/auth';
+import { getAuth } from 'firebase-admin/auth';
 
 let adminApp: App | null = null;
 let initError: string | null = null;

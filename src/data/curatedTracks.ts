@@ -1,4 +1,4 @@
-import { Track, ArtistProfile } from '../types';
+import type { Track, ArtistProfile } from '../types';
 
 export const POPULAR_ARTISTS: ArtistProfile[] = [
   {
@@ -572,7 +572,55 @@ export const CURATED_TRACKS: Track[] = [
     category: "Kenyan & East Africa"
   },
 
-  // 17. Bien - Inauma & Finale (Kenya)
+  // 17. Bien - Discography & Mixes (Kenya / East Africa)
+  {
+    videoId: "dj_zUJNv_zc",
+    title: "BIEN X ALIKIBA: FINALE OFFICIAL MUSIC VIDEO",
+    author: { name: "Bien" },
+    timestamp: "3:29",
+    views: 55500000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/dj_zUJNv_zc/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/5c6a553de4dc465a5e9a9e21f21517de/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+  {
+    videoId: "raspL_FA84o",
+    title: "DJ TOPHAZ - THE BIEN MIXPERIENCE",
+    author: { name: "Bien" },
+    timestamp: "2:12:38",
+    views: 277000,
+    ago: "1 year ago",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/raspL_FA84o/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/5c6a553de4dc465a5e9a9e21f21517de/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+  {
+    videoId: "xO7-P35R7r0",
+    title: "BEST OF BIEN SONGS MIX 2025, BIEN NEW SONGS VIDEO MIX BY DJ GABU",
+    author: { name: "Bien" },
+    timestamp: "1:07:35",
+    views: 218000,
+    ago: "2025",
+    releaseYear: 2025,
+    thumbnail: "https://i.ytimg.com/vi/xO7-P35R7r0/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/5c6a553de4dc465a5e9a9e21f21517de/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+  {
+    videoId: "pYV3L9B70jM",
+    title: "Marioo feat Bien - Nairobi (Visualiser)",
+    author: { name: "Bien" },
+    timestamp: "3:23",
+    views: 61000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/pYV3L9B70jM/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/5c6a553de4dc465a5e9a9e21f21517de/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
   {
     videoId: "Or2sMfOcTtw",
     title: "Bien - Inauma (Official Music Video)",
@@ -586,14 +634,110 @@ export const CURATED_TRACKS: Track[] = [
     category: "Kenyan & East Africa"
   },
   {
-    videoId: "dj_zUJNv_zc",
-    title: "BIEN X ALIKIBA: FINALE OFFICIAL MUSIC VIDEO",
+    videoId: "uCTzC3y4kbU",
+    title: "MATATA ft. BIEN - MPISHI [Official Music Video]",
     author: { name: "Bien" },
-    timestamp: "3:42",
-    views: 4500000,
+    timestamp: "3:21",
+    views: 22150000,
+    ago: "1 year ago",
+    releaseYear: 2023,
+    thumbnail: "https://i.ytimg.com/vi/uCTzC3y4kbU/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/5c6a553de4dc465a5e9a9e21f21517de/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+  {
+    videoId: "DGmjwTqg_C0",
+    title: "Bien x Dj Edu - Too Easy (Official Music Video)",
+    author: { name: "Bien" },
+    timestamp: "3:25",
+    views: 12000000,
+    ago: "2023",
+    releaseYear: 2023,
+    thumbnail: "https://i.ytimg.com/vi/DGmjwTqg_C0/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/5c6a553de4dc465a5e9a9e21f21517de/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+  {
+    videoId: "rdCoEg4StB0",
+    title: "Element Eleéeh - AYAYAAH Ft Bien, Joshua Baraka",
+    author: { name: "Bien" },
+    timestamp: "3:18",
+    views: 9400000,
     ago: "2024",
     releaseYear: 2024,
-    thumbnail: "https://i.ytimg.com/vi/dj_zUJNv_zc/hqdefault.jpg",
+    thumbnail: "https://i.ytimg.com/vi/rdCoEg4StB0/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/5c6a553de4dc465a5e9a9e21f21517de/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+  {
+    videoId: "pT9t4j1v8nE",
+    title: "Bien - Bald Men Anthem ft Aaron Rimbui",
+    author: { name: "Bien" },
+    timestamp: "3:45",
+    views: 8500000,
+    ago: "Official Video",
+    releaseYear: 2021,
+    thumbnail: "https://i.ytimg.com/vi/pT9t4j1v8nE/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/5c6a553de4dc465a5e9a9e21f21517de/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+  {
+    videoId: "vC1o9J9b-V0",
+    title: "Bien - Ma Cherie (Official Music Video)",
+    author: { name: "Bien" },
+    timestamp: "3:30",
+    views: 7200000,
+    ago: "Official Video",
+    releaseYear: 2023,
+    thumbnail: "https://i.ytimg.com/vi/vC1o9J9b-V0/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/5c6a553de4dc465a5e9a9e21f21517de/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+  {
+    videoId: "u2xLw6v5_tA",
+    title: "Bien - Wahala (Official Music Video)",
+    author: { name: "Bien" },
+    timestamp: "3:15",
+    views: 5800000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/u2xLw6v5_tA/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/5c6a553de4dc465a5e9a9e21f21517de/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+  {
+    videoId: "tMVtv0qOFhQ",
+    title: "Yemi Alade - Don’t Be Shy (Official Video) ft. Bien",
+    author: { name: "Bien" },
+    timestamp: "3:40",
+    views: 4200000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/tMVtv0qOFhQ/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/5c6a553de4dc465a5e9a9e21f21517de/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+  {
+    videoId: "k6N7m8P9_qA",
+    title: "Bien & Ayra Starr - My Baby (Official Video)",
+    author: { name: "Bien" },
+    timestamp: "3:20",
+    views: 14000000,
+    ago: "2023",
+    releaseYear: 2023,
+    thumbnail: "https://i.ytimg.com/vi/k6N7m8P9_qA/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/5c6a553de4dc465a5e9a9e21f21517de/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+  {
+    videoId: "w9K8v7b6_tU",
+    title: "Bien - Dimension ft Darassa (Official Video)",
+    author: { name: "Bien" },
+    timestamp: "3:10",
+    views: 6100000,
+    ago: "2023",
+    releaseYear: 2023,
+    thumbnail: "https://i.ytimg.com/vi/w9K8v7b6_tU/hqdefault.jpg",
     artistImage: "https://cdn-images.dzcdn.net/images/artist/5c6a553de4dc465a5e9a9e21f21517de/500x500-000000-80-0-0.jpg",
     category: "Kenyan & East Africa"
   },

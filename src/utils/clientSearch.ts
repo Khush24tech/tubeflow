@@ -203,6 +203,14 @@ export async function performClientFallbackSearch(query: string): Promise<Client
             continue;
           }
 
+          const itemArtistLower = (item.artistName || "").toLowerCase();
+          // When searching for an artist (e.g. Bien) or short query, reject songs where artist doesn't match
+          if (detectedArtistProfile || lowerQuery.length <= 4) {
+            if (!itemArtistLower.includes(lowerQuery)) {
+              continue;
+            }
+          }
+
           const artwork = item.artworkUrl100
             ? item.artworkUrl100.replace('100x100bb', '600x600bb')
             : 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop';
@@ -254,12 +262,20 @@ export async function performClientFallbackSearch(query: string): Promise<Client
     discoveredTracks.push(...tokenMatches);
   }
 
-  // 6. Sort results so that latest songs (2024-2026) and exact title/artist matches appear first
+  // 6. Sort results:
+  // - Verified YouTube videos from curated/exact matching artist first
+  // - Exact artist matches next
+  // - Prefer native YouTube playable video IDs
   discoveredTracks.sort((a, b) => {
-    const aIsExact = a.author.name.toLowerCase().includes(lowerQuery) || a.title.toLowerCase().includes(lowerQuery);
-    const bIsExact = b.author.name.toLowerCase().includes(lowerQuery) || b.title.toLowerCase().includes(lowerQuery);
-    if (aIsExact && !bIsExact) return -1;
-    if (!aIsExact && bIsExact) return 1;
+    const aIsArtist = a.author.name.toLowerCase().includes(lowerQuery);
+    const bIsArtist = b.author.name.toLowerCase().includes(lowerQuery);
+    if (aIsArtist && !bIsArtist) return -1;
+    if (!aIsArtist && bIsArtist) return 1;
+
+    const aIsNativeYt = !a.videoId.startsWith("yt_") && a.videoId.length === 11;
+    const bIsNativeYt = !b.videoId.startsWith("yt_") && b.videoId.length === 11;
+    if (aIsNativeYt && !bIsNativeYt) return -1;
+    if (!aIsNativeYt && bIsNativeYt) return 1;
 
     const aYear = typeof a.releaseYear === 'number' ? a.releaseYear : 2020;
     const bYear = typeof b.releaseYear === 'number' ? b.releaseYear : 2020;
