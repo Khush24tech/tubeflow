@@ -1,16 +1,11 @@
 import express from "express";
-import type { Request, Response, NextFunction } from "express";
+import type { Request, Response } from "express";
 import path from "path";
-import fs from "fs";
-import { spawn } from "child_process";
 import cors from "cors";
-// @ts-ignore - yt-search does not have strict types
-import yts from "yt-search";
-// @ts-ignore
-import ytdl from "@distube/ytdl-core";
-import { Innertube, UniversalCache } from "youtubei.js";
-import { getFirebaseAdminApp, getFirebaseAdminStatus, verifyFirebaseIdToken } from "./src/server/firebaseAdmin.ts";
-import { CURATED_TRACKS, getCuratedTracksByCategory, findArtistProfile } from "./src/data/curatedTracks.ts";
+import { getFirebaseAdminStatus, verifyFirebaseIdToken } from "./src/server/firebaseAdmin.ts";
+import { executeSearch } from "./src/server/searchService.ts";
+import { handleDownloadPrepare, handleDownloadProgress, handleDownloadStream } from "./src/server/downloadService.ts";
+import { handleTrendingRequest, handleTrackDetails } from "./src/server/trendingService.ts";
 
 const app = express();
 const PORT = 3000;
@@ -18,842 +13,167 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
-// Health check endpoint for ingress and monitoring
-app.get("/api/health", (_req, res) => {
-  res.json({ status: "ok", service: "tubeflow-server", timestamp: new Date().toISOString() });
+// 0. Health check endpoint for monitoring & ingress
+app.get(["/api/health", "/health"], (_req: Request, res: Response) => {
+  res.json({
+    status: "ok",
+    service: "tubeflow-server",
+    timestamp: new Date().toISOString()
+  });
 });
 
-let ytClient: Innertube | null = null;
-async function getYouTubeClient(): Promise<Innertube> {
-  if (!ytClient) {
-    ytClient = await Innertube.create({ lang: "en" });
-  }
-  return ytClient;
-}
-
-// Helper to extract YouTube video ID from URL or return original query
-function extractVideoId(query: string): string | null {
-  const urlPattern = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-  const match = query.match(urlPattern);
-  return match ? match[1] : null;
-}
-
-// Curated top trending tracks fallback & starter list
-const CURATED_TRENDING = CURATED_TRACKS;
-
-// Safe text parsers to prevent TypeError: title.trim is not a function
-function parseSafeTitle(rawTitle: any): string {
-  if (!rawTitle) return "Unknown Title";
-  if (typeof rawTitle === "string") return rawTitle.trim();
-  if (typeof rawTitle.text === "string") return rawTitle.text.trim();
-  if (Array.isArray(rawTitle.runs)) {
-    const joined = rawTitle.runs.map((r: any) => r?.text || "").join("").trim();
-    if (joined) return joined;
-  }
-  try {
-    const str = String(rawTitle);
-    return str === "[object Object]" ? "Unknown Title" : str.trim();
-  } catch {
-    return "Unknown Title";
-  }
-}
-
-function parseSafeAuthor(rawAuthor: any): string {
-  if (!rawAuthor) return "Unknown Artist";
-  if (typeof rawAuthor === "string") return rawAuthor.trim();
-  if (typeof rawAuthor.name === "string") return rawAuthor.name.trim();
-  if (typeof rawAuthor.text === "string") return rawAuthor.text.trim();
-  if (Array.isArray(rawAuthor.runs)) {
-    const joined = rawAuthor.runs.map((r: any) => r?.text || "").join("").trim();
-    if (joined) return joined;
-  }
-  try {
-    const str = String(rawAuthor);
-    return str === "[object Object]" ? "Unknown Artist" : str.trim();
-  } catch {
-    return "Unknown Artist";
-  }
-}
-
-// Dynamic artist metadata resolver - supports local Kenyan, African, and international artists globally
-async function resolveArtistProfile(
-  query: string,
-  channelArtist: any | null,
-  topVideoAuthor?: string
-): Promise<any | null> {
-  // 1. If YouTube Innertube returned an official channel with avatar/subscriber info
-  if (channelArtist && channelArtist.picture) {
-    return channelArtist;
-  }
-
-  // 2. Check local curated global artists
-  const curated = findArtistProfile(query);
-  if (curated) return curated;
-
-  // 3. Dynamic lookup via Deezer API (covers millions of artists worldwide including Kenyan and local creators)
-  try {
-    const deezerRes = await fetch(
-      `https://api.deezer.com/search/artist?q=${encodeURIComponent(query)}&limit=1`,
-      { signal: AbortSignal.timeout(3500) }
-    );
-    if (deezerRes.ok) {
-      const d = await deezerRes.json();
-      if (d.data && Array.isArray(d.data) && d.data[0]) {
-        const a = d.data[0];
-        const qNorm = query.toLowerCase().trim();
-        const aNorm = a.name.toLowerCase().trim();
-        if (qNorm.includes(aNorm) || aNorm.includes(qNorm) || (a.nb_fan && a.nb_fan > 50)) {
-          return {
-            id: a.id,
-            name: a.name,
-            picture: a.picture_xl || a.picture_big || a.picture_medium || a.picture,
-            fans: a.nb_fan || 100000,
-            monthlyListeners: a.nb_fan ? `${Number(a.nb_fan).toLocaleString()} Fans` : "Popular Artist",
-            genre: "Verified Global Artist",
-            verified: true,
-            bio: `Explore top releases and discography from ${a.name}.`
-          };
-        }
-      }
-    }
-  } catch (e) {
-    // Deezer network notice
-  }
-
-  // 4. iTunes Search API lookup (Global catalog)
-  try {
-    const itunesRes = await fetch(
-      `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=musicArtist&limit=1`,
-      { signal: AbortSignal.timeout(3000) }
-    );
-    if (itunesRes.ok) {
-      const itunesData = await itunesRes.json();
-      if (itunesData.results && itunesData.results.length > 0) {
-        const art = itunesData.results[0];
-        return {
-          name: art.artistName,
-          picture: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop",
-          genre: art.primaryGenreName || "Music",
-          verified: true,
-          bio: `Verified artist profile for ${art.artistName}.`
-        };
-      }
-    }
-  } catch {}
-
-  // 5. If top video author matches search query
-  if (topVideoAuthor && query.toLowerCase().trim() === topVideoAuthor.toLowerCase().trim()) {
-    return {
-      name: topVideoAuthor,
-      picture: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop",
-      genre: "YouTube Music Artist",
-      verified: true,
-      bio: `Official videos and releases by ${topVideoAuthor}.`
-    };
-  }
-
-  return null;
-}
-
-// Direct YouTube Web scraper - high-reliability fallback that never triggers datacenter bot-checks
-async function searchYouTubeWebDirect(query: string): Promise<any[]> {
-  try {
-    const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIQAQ%253D%253D`;
-    const res = await fetch(url, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept-Language": "en-US,en;q=0.9"
-      },
-      signal: AbortSignal.timeout(5000)
-    });
-    if (!res.ok) return [];
-    const html = await res.text();
-    const match = html.match(/var ytInitialData = ({.*?});<\/script>/s) || html.match(/ytInitialData\s*=\s*({.+?});/s);
-    if (!match) return [];
-    const data = JSON.parse(match[1]);
-    const videos: any[] = [];
-    
-    function findVideos(obj: any) {
-      if (!obj || typeof obj !== "object") return;
-      if (obj.videoRenderer) {
-        const vr = obj.videoRenderer;
-        const id = vr.videoId;
-        const title = vr.title?.runs?.map((r: any) => r.text).join("") || vr.title?.simpleText || "";
-        const author = vr.ownerText?.runs?.[0]?.text || vr.longBylineText?.runs?.[0]?.text || "";
-        const timestamp = vr.lengthText?.simpleText || vr.lengthText?.runs?.[0]?.text || "3:30";
-        const views = vr.viewCountText?.simpleText || vr.shortViewCountText?.simpleText || "100K views";
-        const ago = vr.publishedTimeText?.simpleText || "Recent";
-        const thumbnail = vr.thumbnail?.thumbnails?.[vr.thumbnail.thumbnails.length - 1]?.url || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
-        
-        if (id && typeof id === "string" && id.length === 11 && title) {
-          if (!videos.some(v => v.videoId === id)) {
-            videos.push({
-              videoId: id,
-              title,
-              author: { name: author || "YouTube Artist" },
-              timestamp,
-              views,
-              ago,
-              thumbnail,
-              url: `https://www.youtube.com/watch?v=${id}`
-            });
-          }
-        }
-      }
-      for (const k of Object.keys(obj)) {
-        if (videos.length >= 24) break;
-        findVideos(obj[k]);
-      }
-    }
-    
-    findVideos(data);
-    return videos;
-  } catch (err) {
-    console.warn("Direct YouTube web search notice:", err);
-    return [];
-  }
-}
-
-// 1. Search API endpoint (Powered by Innertube & direct YouTube web search)
-app.get("/api/search", async (req: Request, res: Response) => {
+// 1. Search API endpoint (Universal multi-tier YouTube & artist search)
+app.get(["/api/search", "/search"], async (req: Request, res: Response) => {
   try {
     const rawQ = req.query.q;
     const query = typeof rawQ === "string" ? rawQ.trim() : String(rawQ || "").trim();
     if (!query) {
-      return res.status(400).json({ error: "Query parameter 'q' is required" });
-    }
-
-    const videoId = extractVideoId(query);
-
-    // 1. Direct Video ID / URL lookup
-    if (videoId) {
-      try {
-        const yt = await getYouTubeClient();
-        const info = await yt.getInfo(videoId);
-        if (info && info.basic_info) {
-          const directTitle = parseSafeTitle(info.basic_info.title);
-          const directAuthor = parseSafeAuthor(info.basic_info.author);
-          return res.json({
-            results: [
-              {
-                videoId,
-                title: directTitle,
-                author: { name: directAuthor },
-                timestamp: info.basic_info.duration ? `${Math.floor(info.basic_info.duration / 60)}:${String(info.basic_info.duration % 60).padStart(2, "0")}` : "3:30",
-                views: info.basic_info.view_count || 100000,
-                ago: "Recent",
-                thumbnail: info.basic_info.thumbnail?.[0]?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`,
-                description: info.basic_info.short_description || "",
-                url: `https://www.youtube.com/watch?v=${videoId}`
-              }
-            ],
-            type: "direct_video",
-            query
-          });
-        }
-      } catch (err) {
-        console.warn("Direct video lookup via Innertube notice:", err);
-      }
-    }
-
-    // 2. Search query with Innertube (youtubei.js)
-    try {
-      const yt = await getYouTubeClient();
-      const searchResults = await yt.search(query, { type: "video" });
-      
-      let channelArtist: any = null;
-      const videos: any[] = [];
-      const rawList = (searchResults as any).results || (searchResults as any).videos || [];
-
-      const processItem = (item: any) => {
-        if (!item) return;
-        const vidId = item.id || item.videoId;
-        const idStr = typeof vidId === "string" ? vidId.trim() : "";
-
-        // Detect channels (skip pushing channel to song list, extract as artist profile)
-        if (item.type === "Channel" || (idStr.startsWith("UC") && idStr.length > 15)) {
-          if (!channelArtist) {
-            const chName = item.author?.name || parseSafeTitle(item.title) || query;
-            const chPic = item.author?.thumbnails?.[0]?.url || item.thumbnails?.[0]?.url || item.thumbnail;
-            const chSubs = item.subscriber_count?.text || item.video_count?.text || item.subscribers?.text || "Official Channel";
-            channelArtist = {
-              name: chName,
-              picture: chPic,
-              fans: chSubs,
-              monthlyListeners: chSubs,
-              genre: "Official YouTube Artist",
-              verified: item.author?.is_verified_artist ?? true,
-              bio: item.description_snippet?.text || `Official YouTube channel for ${chName}.`
-            };
-          }
-          return;
-        }
-
-        // Unpack shelves or item collections
-        if (item.type === "Shelf" || Array.isArray(item.items)) {
-          const shelfItems = item.items || [];
-          for (const sub of shelfItems) {
-            processItem(sub);
-          }
-          return;
-        }
-
-        // Must be a valid 11-character YouTube video ID
-        if (idStr.length !== 11 || idStr.startsWith("UC")) {
-          return;
-        }
-
-        const itemTitle = parseSafeTitle(item.title);
-        const itemAuthor = parseSafeAuthor(item.author);
-        const itemDuration = typeof item.duration?.text === "string" 
-          ? item.duration.text 
-          : (typeof item.duration?.toString === "function" ? item.duration.toString() : "3:45");
-        const itemThumbnail = item.thumbnails?.[0]?.url || item.thumbnail || `https://i.ytimg.com/vi/${idStr}/hqdefault.jpg`;
-        const itemViews = item.short_view_count?.text || item.view_count?.text || "1.2M views";
-
-        // Prevent duplicates
-        if (videos.some(v => v.videoId === idStr)) return;
-
-        videos.push({
-          videoId: idStr,
-          title: itemTitle,
-          author: { name: itemAuthor },
-          timestamp: itemDuration,
-          views: itemViews,
-          ago: item.published?.text || "Recent",
-          thumbnail: itemThumbnail,
-          description: item.description || "",
-          url: `https://www.youtube.com/watch?v=${idStr}`
-        });
-      };
-
-      for (const item of rawList) {
-        processItem(item);
-        if (videos.length >= 24) break;
-      }
-
-      const topAuthor = videos[0]?.author?.name;
-      const matchedArtist = await resolveArtistProfile(query, channelArtist, topAuthor);
-
-      if (videos.length > 0) {
-        return res.json({
-          results: videos,
-          artist: matchedArtist || undefined,
-          type: "search",
-          query,
-          count: videos.length
-        });
-      }
-    } catch (innerSearchErr) {
-      console.warn("Innertube search error, trying direct web search:", innerSearchErr);
-    }
-
-    // 3. Direct YouTube Web search (bulletproof on cloud datacenter IPs)
-    try {
-      let webVideos = await searchYouTubeWebDirect(query);
-      
-      // If short artist name or few results, also search with "songs" suffix
-      if (webVideos.length < 5) {
-        const extraVideos = await searchYouTubeWebDirect(`${query} songs`);
-        for (const ev of extraVideos) {
-          if (!webVideos.some(v => v.videoId === ev.videoId)) {
-            webVideos.push(ev);
-          }
-          if (webVideos.length >= 24) break;
-        }
-      }
-
-      if (webVideos.length > 0) {
-        const topAuthor = webVideos[0]?.author?.name;
-        const matchedArtist = await resolveArtistProfile(query, null, topAuthor);
-        return res.json({
-          results: webVideos,
-          artist: matchedArtist || undefined,
-          type: "web_search",
-          query,
-          count: webVideos.length
-        });
-      }
-    } catch (webErr) {
-      console.warn("Direct YouTube web search fallback error:", webErr);
-    }
-
-    // 4. Curated filter fallback (Matches Bien, Sauti Sol, Nyashinski, Otile Brown, Wakadinali, etc.)
-    const qLower = query.toLowerCase();
-    const matchedArtist = await resolveArtistProfile(query, null);
-    const curatedMatches = CURATED_TRENDING.filter(item => {
-      const t = parseSafeTitle(item.title).toLowerCase();
-      const a = parseSafeAuthor(item.author?.name).toLowerCase();
-      return t.includes(qLower) || a.includes(qLower);
-    });
-
-    if (curatedMatches.length > 0) {
-      return res.json({
-        results: curatedMatches,
-        artist: matchedArtist || undefined,
-        type: "curated_match",
-        query,
-        count: curatedMatches.length
+      return res.status(400).json({
+        success: false,
+        error: "Query parameter 'q' is required",
+        code: "MISSING_QUERY"
       });
     }
 
-    // 5. Fallback to iTunes search for latest tracks worldwide (STRICT ARTIST MATCHING)
-    try {
-      const itunesRes = await fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=25`,
-        { signal: AbortSignal.timeout(3000) }
-      );
-      if (itunesRes.ok) {
-        const itunesData = await itunesRes.json();
-        if (itunesData.results && itunesData.results.length > 0) {
-          // Reject songs whose artist does not match when querying an artist
-          const filteredSongs = itunesData.results.filter((song: any) => {
-            const artLower = (song.artistName || "").toLowerCase();
-            const trackLower = (song.trackName || "").toLowerCase();
-            // If query is short (e.g. "Bien"), only match artist or exact title, never random titles
-            if (qLower.length <= 4) {
-              return artLower.includes(qLower);
-            }
-            return artLower.includes(qLower) || trackLower.includes(qLower);
-          });
-
-          if (filteredSongs.length > 0) {
-            const itunesTracks = filteredSongs.map((song: any) => ({
-              videoId: `yt_${song.trackId}`,
-              title: `${song.artistName} - ${song.trackName}`,
-              author: { name: song.artistName },
-              timestamp: song.trackTimeMillis ? `${Math.floor(song.trackTimeMillis / 60000)}:${String(Math.floor((song.trackTimeMillis % 60000) / 1000)).padStart(2, "0")}` : "3:30",
-              views: "1.5M views",
-              ago: song.releaseDate ? `${new Date(song.releaseDate).getFullYear()}` : "Latest",
-              thumbnail: song.artworkUrl100 ? song.artworkUrl100.replace("100x100bb", "600x600bb") : "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop",
-              previewUrl: song.previewUrl,
-              category: song.primaryGenreName || "Music",
-              url: song.trackViewUrl
-            }));
-
-            const resolvedArtist = await resolveArtistProfile(query, null, filteredSongs[0].artistName);
-            return res.json({
-              results: itunesTracks,
-              artist: resolvedArtist || undefined,
-              type: "itunes_fallback",
-              query,
-              count: itunesTracks.length
-            });
-          }
-        }
-      }
-    } catch {}
-
-    return res.json({
-      results: CURATED_TRENDING.slice(0, 12),
-      artist: matchedArtist || undefined,
-      fallback: true,
-      query
-    });
+    const data = await executeSearch(query);
+    return res.json(data);
   } catch (error: any) {
-    console.error("Search error:", error);
-    const fallbackQ = (req.query.q as string) || "";
-    return res.json({
-      results: CURATED_TRENDING,
-      artist: findArtistProfile(fallbackQ) || undefined,
-      fallback: true,
-      query: fallbackQ
+    console.error("Search endpoint error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Failed to process search query",
+      code: "SEARCH_ERROR"
     });
   }
 });
 
 // 2. Trending / Top Charts API
-app.get("/api/trending", async (req: Request, res: Response) => {
+app.get(["/api/trending", "/trending"], async (req: Request, res: Response) => {
   try {
-    const category = (req.query.category as string || "all").toLowerCase();
-    
-    // Attempt live trending query via Innertube
-    if (category !== "all") {
-      try {
-        const yt = await getYouTubeClient();
-        const liveResults = await yt.search(`top ${category} hit songs music`, { type: "video" });
-        const rawList = (liveResults as any).results || (liveResults as any).videos || [];
-        const mapped: any[] = [];
-
-        for (const item of rawList) {
-          const vidId = item.id || item.videoId;
-          if (!vidId || typeof vidId !== "string") continue;
-
-          mapped.push({
-            videoId: vidId,
-            title: parseSafeTitle(item.title),
-            author: { name: parseSafeAuthor(item.author) },
-            timestamp: typeof item.duration?.text === "string" ? item.duration.text : "3:30",
-            views: item.short_view_count?.text || "1.5M views",
-            ago: "Trending",
-            thumbnail: item.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${vidId}/hqdefault.jpg`,
-            category: category.toUpperCase()
-          });
-
-          if (mapped.length >= 16) break;
-        }
-
-        if (mapped.length > 0) {
-          return res.json({ trending: mapped, category });
-        }
-      } catch (trendErr) {
-        console.warn("Innertube trending fetch error, using curated:", trendErr);
-      }
-    }
-
-    return res.json({ trending: CURATED_TRENDING, category: "all" });
-  } catch (error) {
-    console.error("Trending error:", error);
-    return res.json({ trending: CURATED_TRENDING, category: "all" });
-  }
-});
-
-// 3. Track Details API with download options & simulated/real formats
-app.get("/api/track/:id", async (req: Request, res: Response) => {
-  try {
-    const id = req.params.id;
-    let trackInfo: any = null;
-
-    try {
-      trackInfo = await yts({ videoId: id });
-    } catch {
-      // Fallback from curated list
-      trackInfo = CURATED_TRENDING.find(t => t.videoId === id) || {
-        videoId: id,
-        title: "Selected Music Track",
-        author: { name: "Artist" },
-        timestamp: "3:30",
-        views: 1250000,
-        ago: "Recent",
-        thumbnail: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`
-      };
-    }
-
-    // Estimate file sizes based on duration (avg ~3.5 min)
-    const formats = {
-      audio: [
-        { format: "mp3", quality: "320 kbps (High Fidelity)", size: "8.4 MB", ext: "mp3", mime: "audio/mpeg" },
-        { format: "mp3", quality: "256 kbps (Standard HQ)", size: "6.8 MB", ext: "mp3", mime: "audio/mpeg" },
-        { format: "mp3", quality: "192 kbps (Medium)", size: "5.1 MB", ext: "mp3", mime: "audio/mpeg" },
-        { format: "m4a", quality: "256 kbps (AAC Apple Audio)", size: "6.2 MB", ext: "m4a", mime: "audio/mp4" },
-        { format: "flac", quality: "Lossless Audio", size: "24.5 MB", ext: "flac", mime: "audio/flac" }
-      ],
-      video: [
-        { format: "mp4", quality: "1080p Full HD (60fps)", size: "54.2 MB", ext: "mp4", mime: "video/mp4" },
-        { format: "mp4", quality: "720p HD", size: "28.6 MB", ext: "mp4", mime: "video/mp4" },
-        { format: "mp4", quality: "480p SD", size: "14.1 MB", ext: "mp4", mime: "video/mp4" },
-        { format: "mp4", quality: "360p Mobile", size: "9.3 MB", ext: "mp4", mime: "video/mp4" }
-      ]
-    };
-
-    return res.json({
-      track: {
-        videoId: trackInfo.videoId || id,
-        title: trackInfo.title || "Track Title",
-        author: trackInfo.author?.name || "Music Artist",
-        duration: trackInfo.timestamp || "3:30",
-        seconds: trackInfo.seconds || 210,
-        views: trackInfo.views || 1000000,
-        thumbnail: trackInfo.thumbnail || `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
-        description: trackInfo.description || "",
-        url: `https://www.youtube.com/watch?v=${id}`
-      },
-      formats
-    });
+    const category = (req.query.category as string) || "all";
+    const data = await handleTrendingRequest(category);
+    return res.json(data);
   } catch (error: any) {
-    return res.status(500).json({ error: error.message });
+    console.error("Trending endpoint error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Failed to fetch trending tracks",
+      code: "TRENDING_ERROR"
+    });
   }
 });
 
-// In-memory cache for ultra-fast instant downloads
-interface CachedMedia {
-  downloadUrl: string;
-  title: string;
-  expiresAt: number;
-}
-const mediaDownloadCache = new Map<string, CachedMedia>();
-const pendingConversionJobs = new Map<string, Promise<any>>();
-
-// Helper to map formats to loader.to format strings
-function mapToLoaderFormat(format: string, quality?: string): string {
-  const f = (format || "mp3").toLowerCase();
-  const q = (quality || "").toLowerCase();
-
-  if (f === "mp3") return "mp3";
-  if (f === "m4a") return "m4a";
-  if (f === "flac") return "flac";
-  if (f === "wav") return "wav";
-
-  if (f === "mp4" || f === "video") {
-    if (q.includes("1080")) return "1080";
-    if (q.includes("720") || q.includes("hd")) return "720";
-    if (q.includes("480")) return "480";
-    if (q.includes("360")) return "360";
-    if (q.includes("4k") || q.includes("2160")) return "4k";
-    return "720";
-  }
-
-  return "mp3";
-}
-
-// 4a. Ultra-Fast Media Conversion Preparation API (with instant cache check)
-app.get("/api/download/prepare", async (req: Request, res: Response) => {
+// 3. Track Details API
+app.get(["/api/track/:id", "/api/track", "/track/:id"], async (req: Request, res: Response) => {
   try {
-    const rawUrl = (req.query.url as string) || (req.query.id as string);
-    const format = ((req.query.format as string) || "mp3").toLowerCase();
-    const quality = (req.query.quality as string) || "";
-    
-    if (!rawUrl) {
-      return res.status(400).json({ error: "Missing YouTube URL or video ID" });
-    }
-
-    let videoId = rawUrl;
-    if (rawUrl.includes("v=")) {
-      videoId = rawUrl.split("v=")[1]?.split("&")[0] || rawUrl;
-    } else if (rawUrl.includes("youtu.be/")) {
-      videoId = rawUrl.split("youtu.be/")[1]?.split("?")[0] || rawUrl;
-    }
-    const inputUrl = `https://www.youtube.com/watch?v=${videoId}`;
-    const loaderFormat = mapToLoaderFormat(format, quality);
-    const cacheKey = `${videoId}_${loaderFormat}`;
-
-    // Instant Cache Hit Check
-    const cached = mediaDownloadCache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) {
-      return res.json({
-        success: true,
-        cached: true,
-        ready: true,
-        downloadUrl: cached.downloadUrl,
-        title: cached.title,
-        format: loaderFormat,
-        progress: 100,
+    const id = req.params.id || (req.query.id as string);
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        error: "Missing track ID parameter",
+        code: "MISSING_TRACK_ID"
       });
     }
-
-    // Check if an existing conversion job is already active for this track
-    if (pendingConversionJobs.has(cacheKey)) {
-      const activeJob = await pendingConversionJobs.get(cacheKey);
-      return res.json(activeJob);
-    }
-
-    // Launch new fast conversion job
-    const jobPromise = (async () => {
-      const initRes = await fetch(
-        `https://loader.to/ajax/download.php?button=1&start=1&end=1&format=${loaderFormat}&url=${encodeURIComponent(inputUrl)}`,
-        {
-          headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-          }
-        }
-      );
-
-      if (!initRes.ok) {
-        throw new Error("Failed to initialize media converter");
-      }
-
-      const initData: any = await initRes.json();
-      return {
-        success: true,
-        jobId: initData.id,
-        progressUrl: initData.progress_url || `https://lto2.affadaffa.com/api/progress?id=${initData.id}`,
-        title: initData.title || initData.info?.title || "Track",
-        format: loaderFormat,
-        cacheKey,
-      };
-    })();
-
-    pendingConversionJobs.set(cacheKey, jobPromise);
-    const result = await jobPromise;
-    setTimeout(() => pendingConversionJobs.delete(cacheKey), 30000); // clear promise after 30s
-
-    return res.json(result);
+    const data = await handleTrackDetails(id);
+    return res.json(data);
   } catch (error: any) {
-    console.error("Prepare download error:", error);
-    return res.status(500).json({ error: error.message || "Failed to initialize media extraction" });
+    console.error("Track details endpoint error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Failed to retrieve track details",
+      code: "TRACK_ERROR"
+    });
   }
 });
 
-// 4b. Fast media progress status API (with automatic cache saving)
-app.get("/api/download/progress", async (req: Request, res: Response) => {
+// 4a. Ultra-Fast Media Conversion Preparation API
+app.get(["/api/download/prepare", "/download/prepare"], async (req: Request, res: Response) => {
   try {
-    const id = req.query.id as string;
-    const cacheKey = req.query.cacheKey as string;
-    const progressUrl = (req.query.progressUrl as string) || `https://lto2.affadaffa.com/api/progress?id=${id}`;
-
-    if (!id) {
-      return res.status(400).json({ error: "Missing job ID" });
-    }
-
-    const pRes = await fetch(progressUrl, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-      }
+    const result = await handleDownloadPrepare({
+      url: req.query.url as string,
+      id: req.query.id as string,
+      format: req.query.format as string,
+      quality: req.query.quality as string
     });
-
-    if (!pRes.ok) {
-      return res.status(502).json({ error: "Failed to query progress" });
-    }
-
-    const data: any = await pRes.json();
-    const progressNum = Math.min(100, Math.max(0, Math.round((data.progress || 0) / 10)));
-    const isReady = !!data.download_url;
-
-    if (isReady && data.download_url) {
-      if (cacheKey) {
-        mediaDownloadCache.set(cacheKey, {
-          downloadUrl: data.download_url,
-          title: parseSafeTitle(data.title) || "Track",
-          expiresAt: Date.now() + 2 * 60 * 60 * 1000, // 2 hours TTL
-        });
-      }
-    }
-
-    return res.json({
-      progress: isReady ? 100 : Math.max(25, progressNum),
-      rawProgress: data.progress,
-      text: data.text || (isReady ? "Download ready!" : "Processing media stream..."),
-      ready: isReady,
-      downloadUrl: isReady && data.download_url ? data.download_url : null
-    });
+    return res.status(result.status).json(result.data);
   } catch (error: any) {
-    console.error("Progress check error:", error);
-    return res.status(500).json({ error: error.message || "Failed to check conversion status" });
+    console.error("Prepare download endpoint error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Failed to initialize media conversion",
+      code: "PREPARE_ERROR"
+    });
   }
 });
 
-// 4c. Primary Direct Media Stream & Pass-Through API endpoint (with instant cache acceleration)
-app.get("/api/download", async (req: Request, res: Response) => {
+// 4b. Fast media progress status API
+app.get(["/api/download/progress", "/download/progress"], async (req: Request, res: Response) => {
   try {
-    const rawUrl = (req.query.url as string) || (req.query.id as string);
-    const format = ((req.query.format as string) || "mp4").toLowerCase();
-    const quality = (req.query.quality as string) || "";
-    const rawTitle = (req.query.title as string) || "Tubeflow_Track";
-    const cleanTitle = rawTitle.replace(/[/\\?%*:|"<>]/g, "").trim() || "Tubeflow_Track";
-
-    if (!rawUrl) {
-      return res.status(400).json({ error: "Missing URL or video ID" });
-    }
-
-    let videoId = rawUrl;
-    if (rawUrl.includes("v=")) {
-      videoId = rawUrl.split("v=")[1]?.split("&")[0] || rawUrl;
-    } else if (rawUrl.includes("youtu.be/")) {
-      videoId = rawUrl.split("youtu.be/")[1]?.split("?")[0] || rawUrl;
-    }
-
-    const inputUrl = `https://www.youtube.com/watch?v=${videoId}`;
-    const isAudio = format === "mp3" || format === "m4a" || format === "flac" || format === "wav";
-    const loaderFormat = mapToLoaderFormat(format, quality);
-    const cacheKey = `${videoId}_${loaderFormat}`;
-
-    let readyDownloadUrl: string | null = null;
-
-    // Check memory cache first
-    const cached = mediaDownloadCache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) {
-      readyDownloadUrl = cached.downloadUrl;
-    } else {
-      // Wait for high-speed conversion pipeline with polling (up to 45s)
-      try {
-        const initRes = await fetch(
-          `https://loader.to/ajax/download.php?button=1&start=1&end=1&format=${loaderFormat}&url=${encodeURIComponent(inputUrl)}`,
-          {
-            headers: {
-              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-            }
-          }
-        );
-
-        if (initRes.ok) {
-          const initData: any = await initRes.json();
-          const pollUrl = initData.progress_url || `https://lto2.affadaffa.com/api/progress?id=${initData.id}`;
-
-          for (let attempt = 0; attempt < 50; attempt++) {
-            await new Promise(r => setTimeout(r, 450));
-            const pRes = await fetch(pollUrl, {
-              headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-              }
-            });
-
-            if (pRes.ok) {
-              const pData: any = await pRes.json();
-              if (pData.download_url) {
-                readyDownloadUrl = pData.download_url;
-                mediaDownloadCache.set(cacheKey, {
-                  downloadUrl: pData.download_url,
-                  title: cleanTitle,
-                  expiresAt: Date.now() + 2 * 60 * 60 * 1000,
-                });
-                break;
-              }
-            }
-          }
-        }
-      } catch (convErr) {
-        console.warn("Primary conversion engine notice:", convErr);
-      }
-    }
-
-    if (readyDownloadUrl) {
-      // If direct redirect requested
-      if (req.query.direct === "true") {
-        return res.redirect(readyDownloadUrl);
-      }
-
-      // Fast streaming pass-through to client
-      const mediaRes = await fetch(readyDownloadUrl);
-      if (mediaRes.ok && mediaRes.body) {
-        const ext = isAudio ? (format === "m4a" ? "m4a" : "mp3") : "mp4";
-        const contentType = isAudio ? (format === "m4a" ? "audio/mp4" : "audio/mpeg") : "video/mp4";
-        const contentLength = mediaRes.headers.get("content-length");
-
-        res.setHeader("Content-Disposition", `attachment; filename="${encodeURIComponent(cleanTitle)}.${ext}"`);
-        res.setHeader("Content-Type", contentType);
-        if (contentLength) {
-          res.setHeader("Content-Length", contentLength);
-        }
-        res.setHeader("Cache-Control", "public, max-age=3600");
-        res.setHeader("Access-Control-Allow-Origin", "*");
-
-        // @ts-ignore
-        const reader = mediaRes.body.getReader();
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          res.write(value);
-        }
-        return res.end();
-      }
-    }
-
-    return res.status(503).json({
-      error: "The media conversion engine is taking longer than usual. Please try clicking 'Instant Mirror' or choose another format.",
+    const result = await handleDownloadProgress({
+      id: req.query.id as string,
+      cacheKey: req.query.cacheKey as string,
+      progressUrl: req.query.progressUrl as string
     });
+    return res.status(result.status).json(result.data);
   } catch (error: any) {
-    console.error("Download processing error:", error);
+    console.error("Progress check endpoint error:", error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || "Failed to check conversion status",
+      code: "PROGRESS_ERROR"
+    });
+  }
+});
+
+// 4c. Primary Direct Media Stream & Pass-Through API endpoint
+app.get(["/api/download", "/download"], async (req: Request, res: Response) => {
+  try {
+    return await handleDownloadStream(
+      {
+        url: req.query.url as string,
+        id: req.query.id as string,
+        format: req.query.format as string,
+        quality: req.query.quality as string,
+        title: req.query.title as string,
+        direct: req.query.direct as string
+      },
+      res
+    );
+  } catch (error: any) {
+    console.error("Download processing endpoint error:", error);
     if (!res.headersSent) {
-      return res.status(500).json({ error: "Failed to process media stream" });
+      return res.status(500).json({
+        success: false,
+        error: error.message || "Failed to process media download",
+        code: "DOWNLOAD_ERROR"
+      });
     }
   }
 });
 
 // 4.5 Firebase Admin Authentication Routes
-app.get("/api/auth/status", (_req, res) => {
+app.get(["/api/auth/status", "/auth/status"], (_req: Request, res: Response) => {
   const status = getFirebaseAdminStatus();
   res.json(status);
 });
 
-app.post("/api/auth/verify", async (req, res) => {
+app.post(["/api/auth/verify", "/auth/verify"], async (req: Request, res: Response) => {
   const { idToken } = req.body || {};
   if (!idToken) {
-    return res.status(400).json({ error: "Missing idToken parameter" });
+    return res.status(400).json({
+      success: false,
+      error: "Missing idToken parameter",
+      code: "MISSING_ID_TOKEN"
+    });
   }
 
   const decoded = await verifyFirebaseIdToken(idToken);
   if (!decoded) {
-    return res.status(401).json({ error: "Invalid or expired token, or Admin SDK not initialized" });
+    return res.status(401).json({
+      success: false,
+      error: "Invalid or expired token, or Admin SDK not initialized",
+      code: "INVALID_TOKEN"
+    });
   }
 
   return res.json({
@@ -866,12 +186,12 @@ app.post("/api/auth/verify", async (req, res) => {
 });
 
 // 5. SEO Routes: sitemap.xml & robots.txt
-app.get("/robots.txt", (_req, res) => {
+app.get("/robots.txt", (_req: Request, res: Response) => {
   res.type("text/plain");
   res.send(`User-agent: *\nAllow: /\nSitemap: https://tubeflow.app/sitemap.xml`);
 });
 
-app.get("/sitemap.xml", (_req, res) => {
+app.get("/sitemap.xml", (_req: Request, res: Response) => {
   res.type("application/xml");
   const urls = [
     { loc: "https://tubeflow.app/", priority: "1.0", changefreq: "daily" },
@@ -897,19 +217,22 @@ app.get("/sitemap.xml", (_req, res) => {
   res.send(xml);
 });
 
-// Start server with Vite middleware
+// Export app for Vercel Serverless / external runners
+export default app;
+
+// Start server with Vite middleware when not running inside Vercel serverless
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
-      appType: "spa",
+      appType: "spa"
     });
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
-    app.get("*", (_req, res) => {
+    app.get("*", (_req: Request, res: Response) => {
       res.sendFile(path.join(distPath, "index.html"));
     });
   }
@@ -919,4 +242,7 @@ async function startServer() {
   });
 }
 
-startServer();
+// Only launch standalone listening port when running in local / container environment
+if (process.env.VERCEL !== "1" && !process.env.NOW_REGION) {
+  startServer();
+}

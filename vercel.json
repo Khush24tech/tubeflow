@@ -1,0 +1,85 @@
+{
+  "version": 2,
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": {
+    "api/**/*.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "api/*.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/download/prepare",
+      "destination": "/api/download/prepare"
+    },
+    {
+      "source": "/api/download/progress",
+      "destination": "/api/download/progress"
+    },
+    {
+      "source": "/api/download",
+      "destination": "/api/download"
+    },
+    {
+      "source": "/api/search",
+      "destination": "/api/search"
+    },
+    {
+      "source": "/api/trending",
+      "destination": "/api/trending"
+    },
+    {
+      "source": "/api/track/:id",
+      "destination": "/api/track?id=:id"
+    },
+    {
+      "source": "/api/health",
+      "destination": "/api/health"
+    },
+    {
+      "source": "/api/auth/status",
+      "destination": "/api/auth/status"
+    },
+    {
+      "source": "/api/auth/verify",
+      "destination": "/api/auth/verify"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api"
+    },
+    {
+      "source": "/((?!api/|.*\\..*).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Credentials",
+          "value": "true"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization"
+        }
+      ]
+    }
+  ]
+}

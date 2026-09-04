@@ -446,6 +446,14 @@ export default function App() {
           const json = await res.json();
           if (json.error) errMessage = json.error;
         } catch {}
+
+        if (res.status === 404) {
+          errMessage = 'Download service endpoint or track media not found (404). Please try another format.';
+        } else if (res.status === 429) {
+          errMessage = 'Too many requests. Please wait a moment before downloading again.';
+        } else if (res.status === 503 || res.status === 504) {
+          errMessage = 'Media conversion engine is busy. Please try another format or link.';
+        }
         throw new Error(errMessage);
       }
       const blob = await res.blob();

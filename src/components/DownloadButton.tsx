@@ -53,9 +53,81 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
 
     try {
       const cleanTitle = (typeof title === 'string' ? title : String(title || 'Tubeflow_Media')).replace(/[/\\?%*:|"<>]/g, '').trim() || 'Tubeflow_Media';
+      const cleanVideoId = videoId || (targetUrl.includes('v=') ? targetUrl.split('v=')[1]?.split('&')[0] : '');
+
+      let directDownloadUrl: string | null = null;
+
+      // Phase 1: Check ultra-fast conversion preparation API
+      try {
+        const prepareParams = new URLSearchParams({
+          url: targetUrl,
+          id: cleanVideoId,
+          format,
+          quality,
+        });
+
+        const prepRes = await fetch(`/api/download/prepare?${prepareParams.toString()}`);
+        if (prepRes.ok) {
+          const prepData = await prepRes.json();
+          if (prepData.ready && prepData.downloadUrl) {
+            directDownloadUrl = prepData.downloadUrl;
+          } else if (prepData.jobId) {
+            setDownloadStatus('Converting...');
+
+            // Rapid polling loop for instant progress
+            for (let i = 0; i < 25; i++) {
+              await new Promise((r) => setTimeout(r, 400));
+              const progParams = new URLSearchParams({
+                id: prepData.jobId,
+                progressUrl: prepData.progressUrl || '',
+                cacheKey: prepData.cacheKey || '',
+              });
+              const pRes = await fetch(`/api/download/progress?${progParams.toString()}`);
+              if (pRes.ok) {
+                const pData = await pRes.json();
+                if (pData.progress) {
+                  setDownloadStatus(`Converting ${Math.round(pData.progress)}%`);
+                }
+                if (pData.ready && pData.downloadUrl) {
+                  directDownloadUrl = pData.downloadUrl;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      } catch (prepErr) {
+        console.warn('Prepare API notice, falling back to direct stream:', prepErr);
+      }
+
+      // If direct URL is obtained from the converter pipeline, trigger direct download
+      if (directDownloadUrl) {
+        setDownloadStatus('Saving file...');
+        const link = document.createElement('a');
+        link.style.display = 'none';
+        link.href = directDownloadUrl;
+        link.download = `${cleanTitle}.${format}`;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        setDownloadSuccess(true);
+        setDownloadStatus('Done!');
+        onSuccess?.(cleanTitle, format);
+
+        setTimeout(() => {
+          setDownloadSuccess(false);
+          setDownloadStatus('');
+        }, 3000);
+        return;
+      }
+
+      // Phase 2: Stream pass-through fallback
       const queryParams = new URLSearchParams({
         url: targetUrl,
-        id: videoId || '',
+        id: cleanVideoId,
         format,
         quality,
         title: cleanTitle,
@@ -65,15 +137,22 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
       const res = await fetch(`/api/download?${queryParams.toString()}`);
 
       if (!res.ok) {
-        let errorMessage = `Server error (${res.status})`;
+        let errorMessage = `Download failed (HTTP ${res.status})`;
         try {
           const errData = await res.json();
           if (errData.error) {
             errorMessage = errData.error;
           }
-        } catch {
-          // Response was not JSON
+        } catch {}
+
+        if (res.status === 404) {
+          errorMessage = 'The media resource or download service was not found (404). Please try again or select another format.';
+        } else if (res.status === 429) {
+          errorMessage = 'Download rate limit reached. Please wait a moment before downloading again.';
+        } else if (res.status === 503 || res.status === 504) {
+          errorMessage = 'The conversion server is busy. Please click the track options to use the Instant Mirror.';
         }
+
         throw new Error(errorMessage);
       }
 
@@ -108,7 +187,7 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
     } catch (err: any) {
       console.error('Blob Download Error:', err);
       const msg = err.message || 'Download failed. The video may be restricted.';
-      onError ? onError(msg) : alert(`Download failed: ${msg}`);
+      onError ? onError(msg) : alert(`Download Notice: ${msg}`);
     } finally {
       setLoading(false);
     }

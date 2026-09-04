@@ -185,11 +185,19 @@ export const DownloadModal: React.FC<DownloadModalProps> = ({
       });
       const res = await fetch(`/api/download?${queryParams.toString()}`);
       if (!res.ok) {
-        let errText = `Server error (${res.status})`;
+        let errText = `Download failed (HTTP ${res.status})`;
         try {
           const json = await res.json();
           if (json.error) errText = json.error;
         } catch {}
+
+        if (res.status === 404) {
+          errText = 'Download resource or converter endpoint not found (404). Please try Instant Mirror or another format.';
+        } else if (res.status === 429) {
+          errText = 'Download limit reached temporarily. Please wait a moment and try again.';
+        } else if (res.status === 503 || res.status === 504) {
+          errText = 'Conversion engine is busy. Please click "Instant Mirror" below for direct download.';
+        }
         throw new Error(errText);
       }
       const blob = await res.blob();
