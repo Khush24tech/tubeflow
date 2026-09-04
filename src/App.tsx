@@ -607,12 +607,13 @@ export default function App() {
   const categories = [
     'All',
     'Trending',
-    'Pop',
+    'Kenyan & East Africa',
     'Afrobeats',
     'Hip-Hop',
-    'Rock',
+    'Pop',
     'Latin',
     'R&B',
+    'Rock',
     'Acoustic',
   ];
 

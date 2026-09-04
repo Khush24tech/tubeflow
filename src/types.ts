@@ -2,9 +2,11 @@ export interface ArtistProfile {
   id?: string | number;
   name: string;
   picture: string;
-  fans?: number;
+  fans?: number | string;
+  monthlyListeners?: string;
   genre?: string;
   verified?: boolean;
+  bio?: string;
 }
 
 export interface Track {

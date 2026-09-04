@@ -13,8 +13,9 @@ export const ArtistProfileCard: React.FC<ArtistProfileCardProps> = ({
   totalTracksCount,
   onPlayTopTrack,
 }) => {
-  const formatFans = (count?: number) => {
+  const formatFans = (count?: number | string) => {
     if (!count) return 'Top Global Artist';
+    if (typeof count === 'string') return count;
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M fans`;
     if (count >= 1000) return `${Math.round(count / 1000)}K fans`;
     return `${count} fans`;
@@ -62,7 +63,7 @@ export const ArtistProfileCard: React.FC<ArtistProfileCardProps> = ({
           </div>
 
           <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
-            Stream and download the latest authentic songs, top Billboard releases, and official music tracks by <span className="font-semibold text-white">{artist.name}</span>.
+            {artist.bio || `Stream and download the latest authentic songs, top global releases, and official music tracks by ${artist.name}.`}
           </p>
 
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 pt-1 text-xs text-slate-400">

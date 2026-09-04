@@ -21,7 +21,7 @@ app.use(express.json());
 let ytClient: Innertube | null = null;
 async function getYouTubeClient(): Promise<Innertube> {
   if (!ytClient) {
-    ytClient = await Innertube.create({ lang: "en", location: "US", retrieve_player: true });
+    ytClient = await Innertube.create({ lang: "en" });
   }
   return ytClient;
 }
@@ -58,12 +58,96 @@ function parseSafeAuthor(rawAuthor: any): string {
   if (typeof rawAuthor === "string") return rawAuthor.trim();
   if (typeof rawAuthor.name === "string") return rawAuthor.name.trim();
   if (typeof rawAuthor.text === "string") return rawAuthor.text.trim();
+  if (Array.isArray(rawAuthor.runs)) {
+    const joined = rawAuthor.runs.map((r: any) => r?.text || "").join("").trim();
+    if (joined) return joined;
+  }
   try {
     const str = String(rawAuthor);
     return str === "[object Object]" ? "Unknown Artist" : str.trim();
   } catch {
     return "Unknown Artist";
   }
+}
+
+// Dynamic artist metadata resolver - supports local Kenyan, African, and international artists globally
+async function resolveArtistProfile(
+  query: string,
+  channelArtist: any | null,
+  topVideoAuthor?: string
+): Promise<any | null> {
+  // 1. If YouTube Innertube returned an official channel with avatar/subscriber info
+  if (channelArtist && channelArtist.picture) {
+    return channelArtist;
+  }
+
+  // 2. Check local curated global artists
+  const curated = findArtistProfile(query);
+  if (curated) return curated;
+
+  // 3. Dynamic lookup via Deezer API (covers millions of artists worldwide including Kenyan and local creators)
+  try {
+    const deezerRes = await fetch(
+      `https://api.deezer.com/search/artist?q=${encodeURIComponent(query)}&limit=1`,
+      { signal: AbortSignal.timeout(3500) }
+    );
+    if (deezerRes.ok) {
+      const d = await deezerRes.json();
+      if (d.data && Array.isArray(d.data) && d.data[0]) {
+        const a = d.data[0];
+        const qNorm = query.toLowerCase().trim();
+        const aNorm = a.name.toLowerCase().trim();
+        if (qNorm.includes(aNorm) || aNorm.includes(qNorm) || (a.nb_fan && a.nb_fan > 50)) {
+          return {
+            id: a.id,
+            name: a.name,
+            picture: a.picture_xl || a.picture_big || a.picture_medium || a.picture,
+            fans: a.nb_fan || 100000,
+            monthlyListeners: a.nb_fan ? `${Number(a.nb_fan).toLocaleString()} Fans` : "Popular Artist",
+            genre: "Verified Global Artist",
+            verified: true,
+            bio: `Explore top releases and discography from ${a.name}.`
+          };
+        }
+      }
+    }
+  } catch (e) {
+    // Deezer network notice
+  }
+
+  // 4. iTunes Search API lookup (Global catalog)
+  try {
+    const itunesRes = await fetch(
+      `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=musicArtist&limit=1`,
+      { signal: AbortSignal.timeout(3000) }
+    );
+    if (itunesRes.ok) {
+      const itunesData = await itunesRes.json();
+      if (itunesData.results && itunesData.results.length > 0) {
+        const art = itunesData.results[0];
+        return {
+          name: art.artistName,
+          picture: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop",
+          genre: art.primaryGenreName || "Music",
+          verified: true,
+          bio: `Verified artist profile for ${art.artistName}.`
+        };
+      }
+    }
+  } catch {}
+
+  // 5. If top video author matches search query
+  if (topVideoAuthor && query.toLowerCase().trim() === topVideoAuthor.toLowerCase().trim()) {
+    return {
+      name: topVideoAuthor,
+      picture: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop",
+      genre: "YouTube Music Artist",
+      verified: true,
+      bio: `Official videos and releases by ${topVideoAuthor}.`
+    };
+  }
+
+  return null;
 }
 
 // 1. Search API endpoint (Powered by Innertube & youtubei.js)
@@ -113,23 +197,61 @@ app.get("/api/search", async (req: Request, res: Response) => {
       const yt = await getYouTubeClient();
       const searchResults = await yt.search(query, { type: "video" });
       
+      let channelArtist: any = null;
       const videos: any[] = [];
       const rawList = (searchResults as any).results || (searchResults as any).videos || [];
 
-      for (const item of rawList) {
+      const processItem = (item: any) => {
+        if (!item) return;
         const vidId = item.id || item.videoId;
-        if (!vidId || typeof vidId !== "string") continue;
+        const idStr = typeof vidId === "string" ? vidId.trim() : "";
+
+        // Detect channels (skip pushing channel to song list, extract as artist profile)
+        if (item.type === "Channel" || (idStr.startsWith("UC") && idStr.length > 15)) {
+          if (!channelArtist) {
+            const chName = item.author?.name || parseSafeTitle(item.title) || query;
+            const chPic = item.author?.thumbnails?.[0]?.url || item.thumbnails?.[0]?.url || item.thumbnail;
+            const chSubs = item.subscriber_count?.text || item.video_count?.text || item.subscribers?.text || "Official Channel";
+            channelArtist = {
+              name: chName,
+              picture: chPic,
+              fans: chSubs,
+              monthlyListeners: chSubs,
+              genre: "Official YouTube Artist",
+              verified: item.author?.is_verified_artist ?? true,
+              bio: item.description_snippet?.text || `Official YouTube channel for ${chName}.`
+            };
+          }
+          return;
+        }
+
+        // Unpack shelves or item collections
+        if (item.type === "Shelf" || Array.isArray(item.items)) {
+          const shelfItems = item.items || [];
+          for (const sub of shelfItems) {
+            processItem(sub);
+          }
+          return;
+        }
+
+        // Must be a valid 11-character YouTube video ID
+        if (idStr.length !== 11 || idStr.startsWith("UC")) {
+          return;
+        }
 
         const itemTitle = parseSafeTitle(item.title);
         const itemAuthor = parseSafeAuthor(item.author);
         const itemDuration = typeof item.duration?.text === "string" 
           ? item.duration.text 
           : (typeof item.duration?.toString === "function" ? item.duration.toString() : "3:45");
-        const itemThumbnail = item.thumbnails?.[0]?.url || item.thumbnail || `https://i.ytimg.com/vi/${vidId}/hqdefault.jpg`;
+        const itemThumbnail = item.thumbnails?.[0]?.url || item.thumbnail || `https://i.ytimg.com/vi/${idStr}/hqdefault.jpg`;
         const itemViews = item.short_view_count?.text || item.view_count?.text || "1.2M views";
 
+        // Prevent duplicates
+        if (videos.some(v => v.videoId === idStr)) return;
+
         videos.push({
-          videoId: vidId,
+          videoId: idStr,
           title: itemTitle,
           author: { name: itemAuthor },
           timestamp: itemDuration,
@@ -137,13 +259,17 @@ app.get("/api/search", async (req: Request, res: Response) => {
           ago: item.published?.text || "Recent",
           thumbnail: itemThumbnail,
           description: item.description || "",
-          url: `https://www.youtube.com/watch?v=${vidId}`
+          url: `https://www.youtube.com/watch?v=${idStr}`
         });
+      };
 
+      for (const item of rawList) {
+        processItem(item);
         if (videos.length >= 24) break;
       }
 
-      const matchedArtist = findArtistProfile(query);
+      const topAuthor = videos[0]?.author?.name;
+      const matchedArtist = await resolveArtistProfile(query, channelArtist, topAuthor);
 
       if (videos.length > 0) {
         return res.json({
@@ -155,12 +281,46 @@ app.get("/api/search", async (req: Request, res: Response) => {
         });
       }
     } catch (innerSearchErr) {
-      console.warn("Innertube search error, falling back to curated library:", innerSearchErr);
+      console.warn("Innertube search error, falling back:", innerSearchErr);
     }
 
-    // 3. Curated filter fallback
+    // 3. Fallback to iTunes search for latest tracks worldwide
+    try {
+      const itunesRes = await fetch(
+        `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=song&limit=15`,
+        { signal: AbortSignal.timeout(3000) }
+      );
+      if (itunesRes.ok) {
+        const itunesData = await itunesRes.json();
+        if (itunesData.results && itunesData.results.length > 0) {
+          const itunesTracks = itunesData.results.map((song: any) => ({
+            videoId: `yt_${song.trackId}`,
+            title: `${song.artistName} - ${song.trackName}`,
+            author: { name: song.artistName },
+            timestamp: song.trackTimeMillis ? `${Math.floor(song.trackTimeMillis / 60000)}:${String(Math.floor((song.trackTimeMillis % 60000) / 1000)).padStart(2, "0")}` : "3:30",
+            views: "1.5M views",
+            ago: song.releaseDate ? `${new Date(song.releaseDate).getFullYear()}` : "Latest",
+            thumbnail: song.artworkUrl100 ? song.artworkUrl100.replace("100x100bb", "600x600bb") : "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop",
+            previewUrl: song.previewUrl,
+            category: song.primaryGenreName || "Music",
+            url: song.trackViewUrl
+          }));
+
+          const resolvedArtist = await resolveArtistProfile(query, null, itunesData.results[0].artistName);
+          return res.json({
+            results: itunesTracks,
+            artist: resolvedArtist || undefined,
+            type: "itunes_fallback",
+            query,
+            count: itunesTracks.length
+          });
+        }
+      }
+    } catch {}
+
+    // 4. Curated filter fallback
     const qLower = query.toLowerCase();
-    const matchedArtist = findArtistProfile(query);
+    const matchedArtist = await resolveArtistProfile(query, null);
     const filtered = CURATED_TRENDING.filter(item => {
       const t = parseSafeTitle(item.title).toLowerCase();
       const a = parseSafeAuthor(item.author?.name).toLowerCase();

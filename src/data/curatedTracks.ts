@@ -84,6 +84,102 @@ export const POPULAR_ARTISTS: ArtistProfile[] = [
     fans: 14200000,
     genre: "R&B / Soul",
     verified: true
+  },
+  {
+    name: "Sauti Sol",
+    picture: "https://cdn-images.dzcdn.net/images/artist/f76a07a4a99395ffa717c223b732f26a/500x500-000000-80-0-0.jpg",
+    fans: 1850000,
+    genre: "Afro-Pop / Kenyan Band",
+    verified: true,
+    bio: "Kenya's iconic four-time MTV EMA & AFRIMA winning band celebrated for Midnight Train, Suzanna, and Melanin."
+  },
+  {
+    name: "Bien",
+    picture: "https://cdn-images.dzcdn.net/images/artist/5c6a553de4dc465a5e9a9e21f21517de/500x500-000000-80-0-0.jpg",
+    fans: 980000,
+    genre: "Afro-Pop / R&B / Soul",
+    verified: true,
+    bio: "Kenyan singer, songwriter and lead vocalist of Sauti Sol, known for hits like Inauma, Bald Men Anthem, and Wahala."
+  },
+  {
+    name: "Nyashinski",
+    picture: "https://cdn-images.dzcdn.net/images/artist/28aeeda3e775f6e54781a2c40bc8efc8/500x500-000000-80-0-0.jpg",
+    fans: 1200000,
+    genre: "Kenyan Hip-Hop / Afro-Fusion",
+    verified: true,
+    bio: "Pioneering Kenyan hip-hop legend and lyrical mastermind behind Mungu Pekee, Malaika, Free, and Bebi Bebi."
+  },
+  {
+    name: "Otile Brown",
+    picture: "https://cdn-images.dzcdn.net/images/artist/3068aba8a03149bca11add5710be467e/500x500-000000-80-0-0.jpg",
+    fans: 1500000,
+    genre: "Bongo Flava / R&B",
+    verified: true,
+    bio: "East Africa's premier vocal crooner with record-shattering hits including Dusuma, Chaguo La Moyo, and Baby Go."
+  },
+  {
+    name: "Khaligraph Jones",
+    picture: "https://cdn-images.dzcdn.net/images/artist/d8f476e90d1a9165a00d3b81dc2efa5c/500x500-000000-80-0-0.jpg",
+    fans: 1100000,
+    genre: "Kenyan Hip-Hop / Rap",
+    verified: true,
+    bio: "The OG of African rap, Soundcity MVP Best Male Rapper in Africa, acclaimed for Yes Bana, Mazishi, and Tuma Kitu."
+  },
+  {
+    name: "Wakadinali",
+    picture: "https://cdn-images.dzcdn.net/images/artist/600da912d6ed64c233b8a302d83aad2f/500x500-000000-80-0-0.jpg",
+    fans: 850000,
+    genre: "Kenyan Drill / Gengetone",
+    verified: true,
+    bio: "Kenya's premier drill and urban rap triumvirate representing Nairobi street culture with hits like Geri Inengi and Mc Mca."
+  },
+  {
+    name: "Diamond Platnumz",
+    picture: "https://cdn-images.dzcdn.net/images/artist/81ff238210334863c0a4e37340b61678/500x500-000000-80-0-0.jpg",
+    fans: 7800000,
+    genre: "Bongo Flava / Afro-Pop",
+    verified: true,
+    bio: "Tanzanian superstar, WCB Wasafi founder, and global East African ambassador behind Jeje, Number One, and Komasava."
+  },
+  {
+    name: "Ayra Starr",
+    picture: "https://cdn-images.dzcdn.net/images/artist/e13f28cfcf650b297920dc55f36e4dbb/500x500-000000-80-0-0.jpg",
+    fans: 6200000,
+    genre: "Afrobeats / Pop",
+    verified: true,
+    bio: "Grammy-nominated Nigerian sensation and Mavin records star known worldwide for Rush, Commas, and Santa."
+  },
+  {
+    name: "Tems",
+    picture: "https://cdn-images.dzcdn.net/images/artist/bc0629671d188ae6081da701c9058b8f/500x500-000000-80-0-0.jpg",
+    fans: 8900000,
+    genre: "R&B / Soul / Afro",
+    verified: true,
+    bio: "Grammy-winning vocalist celebrated for Free Mind, Me & U, and her album Born in the Wild."
+  },
+  {
+    name: "Fally Ipupa",
+    picture: "https://cdn-images.dzcdn.net/images/artist/a1df3e0d29ae553b1b6d1b7d5ee32bf4/500x500-000000-80-0-0.jpg",
+    fans: 4500000,
+    genre: "Congolese Rumba / Ndombolo",
+    verified: true,
+    bio: "Congolese music royalty, multi-award winning singer and dancer with massive francophone and Pan-African anthems."
+  },
+  {
+    name: "Bad Bunny",
+    picture: "https://cdn-images.dzcdn.net/images/artist/044a3f315b041864887a8dd8709e6926/500x500-000000-80-0-0.jpg",
+    fans: 29000000,
+    genre: "Latin Trap / Reggaeton",
+    verified: true,
+    bio: "Global streaming giant and multi-Grammy winner redefining modern Latin music worldwide."
+  },
+  {
+    name: "Arijit Singh",
+    picture: "https://cdn-images.dzcdn.net/images/artist/ac5350cff290edd5b69fa584b8b1bd4f/500x500-000000-80-0-0.jpg",
+    fans: 24000000,
+    genre: "Bollywood / Acoustic / Soul",
+    verified: true,
+    bio: "India's highest-streamed artist of all time, famous for heartfelt soulful ballads across global cinema."
   }
 ];
 
@@ -448,13 +544,198 @@ export const CURATED_TRACKS: Track[] = [
     releaseYear: 2022,
     thumbnail: "https://i.ytimg.com/vi/WcIcVapfqXw/hqdefault.jpg",
     category: "Afrobeats"
+  },
+
+  // 16. Sauti Sol - Suzanna & Midnight Train (Kenya)
+  {
+    videoId: "mFBJtuQ1Llc",
+    title: "Sauti Sol - Suzanna (Official Video)",
+    author: { name: "Sauti Sol" },
+    timestamp: "4:00",
+    views: 39000000,
+    ago: "East Africa Anthem",
+    releaseYear: 2020,
+    thumbnail: "https://i.ytimg.com/vi/mFBJtuQ1Llc/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/f76a07a4a99395ffa717c223b732f26a/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+  {
+    videoId: "mDFbtb9D58E",
+    title: "Sauti Sol - Melanin ft. Patoranking (Official Music Video)",
+    author: { name: "Sauti Sol" },
+    timestamp: "4:43",
+    views: 35000000,
+    ago: "Pan-African Classic",
+    releaseYear: 2018,
+    thumbnail: "https://i.ytimg.com/vi/mDFbtb9D58E/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/f76a07a4a99395ffa717c223b732f26a/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+
+  // 17. Bien - Inauma & Finale (Kenya)
+  {
+    videoId: "Or2sMfOcTtw",
+    title: "Bien - Inauma (Official Music Video)",
+    author: { name: "Bien" },
+    timestamp: "3:25",
+    views: 18000000,
+    ago: "Hit Single",
+    releaseYear: 2022,
+    thumbnail: "https://i.ytimg.com/vi/Or2sMfOcTtw/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/5c6a553de4dc465a5e9a9e21f21517de/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+  {
+    videoId: "dj_zUJNv_zc",
+    title: "BIEN X ALIKIBA: FINALE OFFICIAL MUSIC VIDEO",
+    author: { name: "Bien" },
+    timestamp: "3:42",
+    views: 4500000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/dj_zUJNv_zc/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/5c6a553de4dc465a5e9a9e21f21517de/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+
+  // 18. Nyashinski - Mungu Pekee & Malaika & Grateful (Kenya)
+  {
+    videoId: "LfPb88GD1Tc",
+    title: "Nyashinski - Mungu Pekee (Official Lyric Video)",
+    author: { name: "Nyashinski" },
+    timestamp: "3:47",
+    views: 18500000,
+    ago: "Kenyan Classic",
+    releaseYear: 2016,
+    thumbnail: "https://i.ytimg.com/vi/LfPb88GD1Tc/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/28aeeda3e775f6e54781a2c40bc8efc8/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+  {
+    videoId: "EELI3ifOXag",
+    title: "Nyashinski - Grateful (Live) Greasy Tunes Nairobi",
+    author: { name: "Nyashinski" },
+    timestamp: "4:15",
+    views: 2200000,
+    ago: "Live Masterpiece",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/EELI3ifOXag/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/28aeeda3e775f6e54781a2c40bc8efc8/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+
+  // 19. Otile Brown - Dusuma & Chaguo La Moyo (Kenya)
+  {
+    videoId: "aY_J2jI2_oQ",
+    title: "Otile Brown x Meddy - Dusuma (Official Music Video)",
+    author: { name: "Otile Brown" },
+    timestamp: "3:39",
+    views: 47000000,
+    ago: "Record Breaker",
+    releaseYear: 2020,
+    thumbnail: "https://i.ytimg.com/vi/aY_J2jI2_oQ/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/3068aba8a03149bca11add5710be467e/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+
+  // 20. Khaligraph Jones - Yes Bana (Kenya)
+  {
+    videoId: "j_wA840ZgE4",
+    title: "KHALIGRAPH JONES - YES BANA ft BIEN (OFFICIAL VIDEO)",
+    author: { name: "Khaligraph Jones" },
+    timestamp: "4:08",
+    views: 7300000,
+    ago: "Hip-Hop Banger",
+    releaseYear: 2020,
+    thumbnail: "https://i.ytimg.com/vi/j_wA840ZgE4/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/d8f476e90d1a9165a00d3b81dc2efa5c/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+
+  // 21. Wakadinali - Geri Inengi & Last Dance (Kenya)
+  {
+    videoId: "f0_Y-7o-CjM",
+    title: "WAKADINALI - GERI INENGI FT SIR BWOY (OFFICIAL VIDEO)",
+    author: { name: "Wakadinali" },
+    timestamp: "3:40",
+    views: 6500000,
+    ago: "Nairobi Drill",
+    releaseYear: 2022,
+    thumbnail: "https://i.ytimg.com/vi/f0_Y-7o-CjM/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/600da912d6ed64c233b8a302d83aad2f/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+
+  // 22. Diamond Platnumz - Jeje (Tanzania / East Africa)
+  {
+    videoId: "i_4iZg63xG0",
+    title: "Diamond Platnumz - Jeje (Official Music Video)",
+    author: { name: "Diamond Platnumz" },
+    timestamp: "3:24",
+    views: 91000000,
+    ago: "East Africa Mega Hit",
+    releaseYear: 2020,
+    thumbnail: "https://i.ytimg.com/vi/i_4iZg63xG0/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/81ff238210334863c0a4e37340b61678/500x500-000000-80-0-0.jpg",
+    category: "Kenyan & East Africa"
+  },
+
+  // 23. Ayra Starr - Rush & Commas (Nigeria / Afrobeats)
+  {
+    videoId: "crYxEwW7X9Y",
+    title: "Ayra Starr - Rush (Official Music Video)",
+    author: { name: "Ayra Starr" },
+    timestamp: "3:10",
+    views: 390000000,
+    ago: "Global Hit",
+    releaseYear: 2022,
+    thumbnail: "https://i.ytimg.com/vi/crYxEwW7X9Y/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/e13f28cfcf650b297920dc55f36e4dbb/500x500-000000-80-0-0.jpg",
+    category: "Afrobeats"
+  },
+
+  // 24. Bad Bunny - Tití Me Preguntó (Latin)
+  {
+    videoId: "Cr8K844_lwM",
+    title: "Bad Bunny - Tití Me Preguntó (Official Video)",
+    author: { name: "Bad Bunny" },
+    timestamp: "4:03",
+    views: 890000000,
+    ago: "Latin Diamond",
+    releaseYear: 2022,
+    thumbnail: "https://i.ytimg.com/vi/Cr8K844_lwM/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/044a3f315b041864887a8dd8709e6926/500x500-000000-80-0-0.jpg",
+    category: "Latin & World"
   }
 ];
 
 export function getCuratedTracksByCategory(category: string): Track[] {
-  const cat = (category || 'all').toLowerCase();
-  if (cat === 'all') return CURATED_TRACKS;
-  return CURATED_TRACKS.filter(t => (t.category || '').toLowerCase() === cat);
+  const cat = (category || 'all').toLowerCase().trim();
+  if (cat === 'all' || cat === 'trending') return CURATED_TRACKS;
+  
+  if (cat.includes('kenya') || cat.includes('east') || cat.includes('bongo') || cat.includes('gengetone')) {
+    return CURATED_TRACKS.filter(t => 
+      (t.category || '').toLowerCase().includes('kenya') || 
+      (t.category || '').toLowerCase().includes('east') ||
+      ['sauti sol', 'bien', 'nyashinski', 'otile brown', 'khaligraph jones', 'wakadinali', 'diamond platnumz'].includes(t.author.name.toLowerCase())
+    );
+  }
+
+  if (cat.includes('afro') || cat.includes('amapiano')) {
+    return CURATED_TRACKS.filter(t => 
+      (t.category || '').toLowerCase().includes('afro') ||
+      ['burna boy', 'asake', 'wizkid', 'tyla', 'rema', 'ayra starr', 'sauti sol', 'bien'].includes(t.author.name.toLowerCase())
+    );
+  }
+
+  if (cat.includes('latin') || cat.includes('world') || cat.includes('global')) {
+    return CURATED_TRACKS.filter(t => 
+      (t.category || '').toLowerCase().includes('latin') ||
+      ['bad bunny', 'arijit singh', 'bts', 'fally ipupa'].includes(t.author.name.toLowerCase())
+    );
+  }
+
+  return CURATED_TRACKS.filter(t => (t.category || '').toLowerCase().includes(cat));
 }
 
 export function findArtistProfile(name: string): ArtistProfile | null {

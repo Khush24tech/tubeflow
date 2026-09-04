@@ -38,14 +38,16 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
   };
 
   const trendingTags = [
-    "Eminem",
+    "Sauti Sol",
+    "Bien",
+    "Nyashinski",
+    "Otile Brown",
     "Burna Boy",
-    "Wizkid",
-    "Ed Sheeran",
-    "Taylor Swift",
-    "Gospel",
+    "Sabrina Carpenter",
+    "Kendrick Lamar",
+    "Wakadinali",
     "Afrobeats",
-    "Lo-Fi Beats"
+    "Latin Hits"
   ];
 
   return (
@@ -81,7 +83,7 @@ export const HeroSearch: React.FC<HeroSearchProps> = ({
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for a song, artist, or paste YouTube link..."
+                placeholder="Search any artist worldwide (e.g. Sauti Sol, Bien, Burna Boy, Sabrina Carpenter) or YouTube link..."
                 className="w-full bg-transparent text-slate-100 placeholder-slate-500 text-sm sm:text-base font-normal px-2 py-3 focus:outline-none"
                 id="main-search-input"
               />
