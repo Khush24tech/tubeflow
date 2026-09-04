@@ -17,11 +17,12 @@ import {
   TrendingUp,
   Disc3
 } from 'lucide-react';
-import { Track, DownloadJob, ToastMessage, FormatOption } from './types';
+import { Track, DownloadJob, ToastMessage, FormatOption, ArtistProfile } from './types';
 import { Navbar } from './components/Navbar';
 import { HeroSearch } from './components/HeroSearch';
 import { TrackCard } from './components/TrackCard';
 import { TrackListItem } from './components/TrackListItem';
+import { ArtistProfileCard } from './components/ArtistProfileCard';
 import { DownloadModal } from './components/DownloadModal';
 import { AudioPlayerBar } from './components/AudioPlayerBar';
 import { DownloadQueueDrawer } from './components/DownloadQueueDrawer';
@@ -44,6 +45,7 @@ export default function App() {
   // Main State
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Track[]>([]);
+  const [searchedArtist, setSearchedArtist] = useState<ArtistProfile | null>(null);
   const [trendingTracks, setTrendingTracks] = useState<Track[]>(CURATED_TRACKS);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -190,23 +192,26 @@ export default function App() {
       
       if (data.results && Array.isArray(data.results) && data.results.length > 0) {
         setResults(data.results);
+        setSearchedArtist(data.artist || null);
         showToast(
           'Results Loaded',
-          `Found ${data.results.length} songs and videos matching "${searchQuery}"`,
+          `Found ${data.results.length} songs matching "${searchQuery}"`,
           'info'
         );
       } else {
         // Try fallback if backend returned zero results
         const fallbackResults = await performClientFallbackSearch(searchQuery);
-        setResults(fallbackResults);
-        if (fallbackResults.length > 0) {
+        setResults(fallbackResults.results);
+        setSearchedArtist(fallbackResults.artistProfile || null);
+        if (fallbackResults.results.length > 0) {
           showToast(
             'Results Loaded',
-            `Showing ${fallbackResults.length} tracks matching "${searchQuery}"`,
+            `Showing ${fallbackResults.results.length} tracks matching "${searchQuery}"`,
             'info'
           );
         } else {
           setResults([]);
+          setSearchedArtist(null);
           showToast('Notice', 'No matching results found. Try another keyword.', 'info');
         }
       }
@@ -214,20 +219,23 @@ export default function App() {
       console.warn('Primary search API unreachable (e.g. GitHub Pages or offline), running client fallback search:', err);
       try {
         const fallbackResults = await performClientFallbackSearch(searchQuery);
-        setResults(fallbackResults);
-        if (fallbackResults.length > 0) {
+        setResults(fallbackResults.results);
+        setSearchedArtist(fallbackResults.artistProfile || null);
+        if (fallbackResults.results.length > 0) {
           showToast(
             'Results Loaded',
-            `Showing ${fallbackResults.length} tracks matching "${searchQuery}"`,
+            `Showing ${fallbackResults.results.length} tracks matching "${searchQuery}"`,
             'info'
           );
         } else {
           setResults([]);
+          setSearchedArtist(null);
           showToast('Notice', 'No matching tracks found. Try another keyword.', 'info');
         }
       } catch (fallbackErr) {
         console.error('Fallback search error:', fallbackErr);
         setResults(getCuratedTracksByCategory('all').slice(0, 10));
+        setSearchedArtist(null);
         showToast('Notice', 'Showing top trending songs.', 'info');
       }
     } finally {
@@ -259,7 +267,7 @@ export default function App() {
       const durSec = parseDurationToSeconds(track.timestamp);
       setPlaybackDuration(durSec);
 
-      // Play the actual genuine YouTube song audio using the videoId
+      // Play the actual genuine YouTube song audio or high-quality audio stream
       audioPlayer.play(
         track.videoId,
         durSec,
@@ -277,7 +285,8 @@ export default function App() {
           } else if (state === 'paused' || state === 'ended') {
             setIsPlaying(false);
           }
-        }
+        },
+        track.previewUrl
       );
 
       showToast('Playing Song', `Now streaming "${track.title}"`, 'info');
@@ -590,6 +599,7 @@ export default function App() {
     setSortBy('popular');
     if (results.length > 0) {
       setResults([]);
+      setSearchedArtist(null);
       setQuery('');
     }
   };
@@ -697,6 +707,15 @@ export default function App() {
               </div>
             </div>
           </div>
+
+          {/* Real Artist Profile Banner when artist is searched */}
+          {searchedArtist && results.length > 0 && (
+            <ArtistProfileCard
+              artist={searchedArtist}
+              totalTracksCount={results.length}
+              onPlayTopTrack={() => results[0] && handlePlayPreview(results[0])}
+            />
+          )}
 
           {/* Optimized Trending Filters Bar: Genre, Search, Sort & View Mode */}
           <TrendingFilterBar

@@ -8,9 +8,11 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   updateProfile,
+  sendEmailVerification,
   Auth,
   User 
 } from 'firebase/auth';
+import { validateEmail } from './emailValidator';
 
 export const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCwDkRcPjHE3ptPGpjd6BS2C5z57aYB39s",
@@ -57,6 +59,13 @@ export async function signInWithGoogle(): Promise<User> {
   }
   try {
     const result = await signInWithPopup(auth, googleProvider);
+    if (result.user.email) {
+      const val = validateEmail(result.user.email);
+      if (!val.isValid) {
+        await firebaseSignOut(auth);
+        throw new Error(val.error || 'This email domain has been blocked due to suspicious or automated activity.');
+      }
+    }
     return result.user;
   } catch (error: any) {
     console.error('Google Sign-In Error:', error);
@@ -64,27 +73,65 @@ export async function signInWithGoogle(): Promise<User> {
   }
 }
 
-// Email/Password Sign In
+// Email/Password Sign In (Existing user directed directly to account without re-confirming)
 export async function signInWithEmail(email: string, pass: string): Promise<User> {
   if (!auth) {
     throw new Error('Authentication is currently unavailable. Please refresh or try again later.');
   }
-  const result = await signInWithEmailAndPassword(auth, email, pass);
+  const cleanEmail = email.trim();
+  const val = validateEmail(cleanEmail);
+  if (!val.isValid) {
+    throw new Error(val.error || 'Please enter a valid email address.');
+  }
+  const result = await signInWithEmailAndPassword(auth, cleanEmail, pass);
   return result.user;
 }
 
-// Email/Password Sign Up with optional display name
+// Email/Password Sign Up with verification email trigger
 export async function signUpWithEmail(email: string, pass: string, displayName?: string): Promise<User> {
   if (!auth) {
     throw new Error('Authentication is currently unavailable. Please refresh or try again later.');
   }
-  const result = await createUserWithEmailAndPassword(auth, email, pass);
+  const cleanEmail = email.trim();
+  const val = validateEmail(cleanEmail);
+  if (!val.isValid) {
+    throw new Error(val.error || 'Invalid or disposable email.');
+  }
+
+  const result = await createUserWithEmailAndPassword(auth, cleanEmail, pass);
   if (displayName && result.user) {
     try {
       await updateProfile(result.user, { displayName });
     } catch {}
   }
+
+  // Send email verification link immediately upon registration
+  if (result.user) {
+    try {
+      await sendEmailVerification(result.user);
+    } catch (verErr) {
+      console.warn('Could not send verification email immediately:', verErr);
+    }
+  }
+
   return result.user;
+}
+
+// Resend verification email
+export async function resendVerificationEmail(user: User): Promise<void> {
+  if (!user) throw new Error('No user account provided.');
+  await sendEmailVerification(user);
+}
+
+// Check if user has verified their email
+export async function checkIsEmailVerified(user: User): Promise<boolean> {
+  if (!user) return false;
+  try {
+    await user.reload();
+    return user.emailVerified;
+  } catch {
+    return user.emailVerified;
+  }
 }
 
 // Sign out current user

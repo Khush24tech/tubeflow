@@ -1,107 +1,206 @@
-import { Track } from '../types';
+import { Track, ArtistProfile } from '../types';
+
+export const POPULAR_ARTISTS: ArtistProfile[] = [
+  {
+    name: "Sabrina Carpenter",
+    picture: "https://cdn-images.dzcdn.net/images/artist/4a9cdc7737e2a0e59b4917b47884b859/500x500-000000-80-0-0.jpg",
+    fans: 9850000,
+    genre: "Pop / Contemporary",
+    verified: true
+  },
+  {
+    name: "Burna Boy",
+    picture: "https://cdn-images.dzcdn.net/images/artist/f1d7a312d83296fa28c2c8f62f3a67d1/500x500-000000-80-0-0.jpg",
+    fans: 12400000,
+    genre: "Afro-Fusion / Afrobeats",
+    verified: true
+  },
+  {
+    name: "Billie Eilish",
+    picture: "https://cdn-images.dzcdn.net/images/artist/cf53d9e4a3aa02c2f6d549dd43ba7fe2/500x500-000000-80-0-0.jpg",
+    fans: 22800000,
+    genre: "Alt-Pop / Electronic",
+    verified: true
+  },
+  {
+    name: "Kendrick Lamar",
+    picture: "https://cdn-images.dzcdn.net/images/artist/0681a28a3f5a2e5d9c57d72c4767aaee/500x500-000000-80-0-0.jpg",
+    fans: 16900000,
+    genre: "Hip-Hop / Rap",
+    verified: true
+  },
+  {
+    name: "Taylor Swift",
+    picture: "https://cdn-images.dzcdn.net/images/artist/20703dd7f3f6e1f0e4bbf0cb92e858db/500x500-000000-80-0-0.jpg",
+    fans: 34500000,
+    genre: "Pop / Singer-Songwriter",
+    verified: true
+  },
+  {
+    name: "Eminem",
+    picture: "https://cdn-images.dzcdn.net/images/artist/19cc5b1d30327f27ec4e8eec676a0860/500x500-000000-80-0-0.jpg",
+    fans: 28900000,
+    genre: "Hip-Hop",
+    verified: true
+  },
+  {
+    name: "Wizkid",
+    picture: "https://cdn-images.dzcdn.net/images/artist/993a408798ca7cf4db0566e133e9d40b/500x500-000000-80-0-0.jpg",
+    fans: 8700000,
+    genre: "Afrobeats / R&B",
+    verified: true
+  },
+  {
+    name: "Asake",
+    picture: "https://cdn-images.dzcdn.net/images/artist/97a544b8ee76a77ca519a911a37c00e1/500x500-000000-80-0-0.jpg",
+    fans: 5200000,
+    genre: "Afrobeats / Amapiano",
+    verified: true
+  },
+  {
+    name: "Teddy Swims",
+    picture: "https://cdn-images.dzcdn.net/images/artist/672eb4cf78c2e648f02931100344d57c/500x500-000000-80-0-0.jpg",
+    fans: 4800000,
+    genre: "Soul / Pop / R&B",
+    verified: true
+  },
+  {
+    name: "Chappell Roan",
+    picture: "https://cdn-images.dzcdn.net/images/artist/a2a6efcae137f6cb2996d9f9a0a1496a/500x500-000000-80-0-0.jpg",
+    fans: 6100000,
+    genre: "Synth-Pop / Indie Pop",
+    verified: true
+  },
+  {
+    name: "Ed Sheeran",
+    picture: "https://cdn-images.dzcdn.net/images/artist/57a7d45763df3989c09d57a918a0026f/500x500-000000-80-0-0.jpg",
+    fans: 26500000,
+    genre: "Pop / Acoustic",
+    verified: true
+  },
+  {
+    name: "SZA",
+    picture: "https://cdn-images.dzcdn.net/images/artist/ceadca4564c78160350d27ec29a43a6a/500x500-000000-80-0-0.jpg",
+    fans: 14200000,
+    genre: "R&B / Soul",
+    verified: true
+  }
+];
 
 export const CURATED_TRACKS: Track[] = [
-  // Pop
+  // 1. Sabrina Carpenter - Latest 2024 Hits
   {
-    videoId: "JGwWNGJdvx8",
-    title: "Ed Sheeran - Shape of You (Official Music Video)",
-    author: { name: "Ed Sheeran" },
-    timestamp: "4:23",
-    views: 6200000000,
-    ago: "7 years ago",
-    thumbnail: "https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg",
-    category: "Pop"
-  },
-  {
-    videoId: "H5v3kku4y6Q",
-    title: "Harry Styles - As It Was (Official Video)",
-    author: { name: "Harry Styles" },
-    timestamp: "2:47",
-    views: 680000000,
-    ago: "1 year ago",
-    thumbnail: "https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg",
-    category: "Pop"
-  },
-  {
-    videoId: "G7KNmW9a75Y",
-    title: "Miley Cyrus - Flowers (Official Video)",
-    author: { name: "Miley Cyrus" },
-    timestamp: "3:20",
-    views: 740000000,
-    ago: "1 year ago",
-    thumbnail: "https://i.ytimg.com/vi/G7KNmW9a75Y/hqdefault.jpg",
-    category: "Pop"
-  },
-  {
-    videoId: "b1kbLwvqugk",
-    title: "Taylor Swift - Anti-Hero (Official Music Video)",
-    author: { name: "Taylor Swift" },
+    videoId: "eVli-tstM5E",
+    title: "Sabrina Carpenter - Espresso (Official Video)",
+    author: { name: "Sabrina Carpenter" },
     timestamp: "3:21",
-    views: 195000000,
-    ago: "1 year ago",
-    thumbnail: "https://i.ytimg.com/vi/b1kbLwvqugk/hqdefault.jpg",
+    views: 669000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/eVli-tstM5E/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/4a9cdc7737e2a0e59b4917b47884b859/500x500-000000-80-0-0.jpg",
     category: "Pop"
   },
   {
-    videoId: "YQHsXMglC9A",
-    title: "Adele - Hello (Official Music Video)",
-    author: { name: "Adele" },
-    timestamp: "6:07",
-    views: 3100000000,
-    ago: "8 years ago",
-    thumbnail: "https://i.ytimg.com/vi/YQHsXMglC9A/hqdefault.jpg",
+    videoId: "cF1Na4AIecM",
+    title: "Sabrina Carpenter - Please Please Please (Official Video)",
+    author: { name: "Sabrina Carpenter" },
+    timestamp: "4:23",
+    views: 313000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/cF1Na4AIecM/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/4a9cdc7737e2a0e59b4917b47884b859/500x500-000000-80-0-0.jpg",
     category: "Pop"
   },
   {
-    videoId: "09R8_2nJtjg",
-    title: "Maroon 5 - Sugar (Official Music Video)",
-    author: { name: "Maroon 5" },
-    timestamp: "5:01",
-    views: 4000000000,
-    ago: "9 years ago",
-    thumbnail: "https://i.ytimg.com/vi/09R8_2nJtjg/hqdefault.jpg",
-    category: "Pop"
-  },
-  {
-    videoId: "hT_nvWreIhg",
-    title: "OneRepublic - Counting Stars (Official Music Video)",
-    author: { name: "OneRepublic" },
-    timestamp: "4:43",
-    views: 4000000000,
-    ago: "10 years ago",
-    thumbnail: "https://i.ytimg.com/vi/hT_nvWreIhg/hqdefault.jpg",
-    category: "Pop"
-  },
-  {
-    videoId: "OPf0YbXqDm0",
-    title: "Mark Ronson - Uptown Funk ft. Bruno Mars",
-    author: { name: "Mark Ronson" },
-    timestamp: "4:30",
-    views: 5200000000,
-    ago: "9 years ago",
-    thumbnail: "https://i.ytimg.com/vi/OPf0YbXqDm0/hqdefault.jpg",
-    category: "Pop"
-  },
-  {
-    videoId: "kffacxfA7G4",
-    title: "Justin Bieber - Baby ft. Ludacris",
-    author: { name: "Justin Bieber" },
-    timestamp: "3:44",
-    views: 3100000000,
-    ago: "14 years ago",
-    thumbnail: "https://i.ytimg.com/vi/kffacxfA7G4/hqdefault.jpg",
+    videoId: "KWoTyfPsqbE",
+    title: "Sabrina Carpenter - Taste (Official Music Video)",
+    author: { name: "Sabrina Carpenter" },
+    timestamp: "3:35",
+    views: 145000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/KWoTyfPsqbE/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/4a9cdc7737e2a0e59b4917b47884b859/500x500-000000-80-0-0.jpg",
     category: "Pop"
   },
 
-  // Afrobeats
+  // 2. Kendrick Lamar - Latest Hits
   {
-    videoId: "WcIcVapfqXw",
-    title: "Rema, Selena Gomez - Calm Down (Official Music Video)",
-    author: { name: "Rema" },
-    timestamp: "3:59",
-    views: 890000000,
-    ago: "1 year ago",
-    thumbnail: "https://i.ytimg.com/vi/WcIcVapfqXw/hqdefault.jpg",
+    videoId: "H58vbez_m4E",
+    title: "Kendrick Lamar - Not Like Us (Official Music Video)",
+    author: { name: "Kendrick Lamar" },
+    timestamp: "4:34",
+    views: 280000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/H58vbez_m4E/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/0681a28a3f5a2e5d9c57d72c4767aaee/500x500-000000-80-0-0.jpg",
+    category: "Hip-Hop"
+  },
+  {
+    videoId: "9c3w1g4q9h0",
+    title: "Kendrick Lamar, SZA - luther",
+    author: { name: "Kendrick Lamar" },
+    timestamp: "3:02",
+    views: 95000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/9c3w1g4q9h0/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/0681a28a3f5a2e5d9c57d72c4767aaee/500x500-000000-80-0-0.jpg",
+    category: "Hip-Hop"
+  },
+
+  // 3. Billie Eilish - Hit Me Hard and Soft (2024)
+  {
+    videoId: "V9PVRfjEBTI",
+    title: "Billie Eilish - BIRDS OF A FEATHER (Official Music Video)",
+    author: { name: "Billie Eilish" },
+    timestamp: "3:30",
+    views: 350000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/V9PVRfjEBTI/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/cf53d9e4a3aa02c2f6d549dd43ba7fe2/500x500-000000-80-0-0.jpg",
+    category: "Pop"
+  },
+  {
+    videoId: "MB3VkzPdgLA",
+    title: "Billie Eilish - LUNCH (Official Music Video)",
+    author: { name: "Billie Eilish" },
+    timestamp: "3:10",
+    views: 120000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/MB3VkzPdgLA/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/cf53d9e4a3aa02c2f6d549dd43ba7fe2/500x500-000000-80-0-0.jpg",
+    category: "Pop"
+  },
+
+  // 4. Burna Boy - Latest Afrobeats
+  {
+    videoId: "3r3XGZ4B7wM",
+    title: "Burna Boy - Higher [Official Music Video]",
+    author: { name: "Burna Boy" },
+    timestamp: "3:24",
+    views: 52000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/3r3XGZ4B7wM/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/f1d7a312d83296fa28c2c8f62f3a67d1/500x500-000000-80-0-0.jpg",
+    category: "Afrobeats"
+  },
+  {
+    videoId: "0nKq3f3iM78",
+    title: "Burna Boy - City Boys [Official Music Video]",
+    author: { name: "Burna Boy" },
+    timestamp: "2:45",
+    views: 140000000,
+    ago: "2023",
+    releaseYear: 2023,
+    thumbnail: "https://i.ytimg.com/vi/0nKq3f3iM78/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/f1d7a312d83296fa28c2c8f62f3a67d1/500x500-000000-80-0-0.jpg",
     category: "Afrobeats"
   },
   {
@@ -109,29 +208,51 @@ export const CURATED_TRACKS: Track[] = [
     title: "Burna Boy - Last Last [Official Music Video]",
     author: { name: "Burna Boy" },
     timestamp: "2:52",
-    views: 260000000,
-    ago: "2 years ago",
+    views: 270000000,
+    ago: "Popular Hit",
+    releaseYear: 2022,
     thumbnail: "https://i.ytimg.com/vi/Ecl8A4olZYs/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/f1d7a312d83296fa28c2c8f62f3a67d1/500x500-000000-80-0-0.jpg",
+    category: "Afrobeats"
+  },
+
+  // 5. Asake - Latest 2024 Releases
+  {
+    videoId: "P1c3P9vF4aU",
+    title: "Asake, Travis Scott - Active (Official Music Video)",
+    author: { name: "Asake" },
+    timestamp: "3:08",
+    views: 38000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/P1c3P9vF4aU/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/97a544b8ee76a77ca519a911a37c00e1/500x500-000000-80-0-0.jpg",
     category: "Afrobeats"
   },
   {
-    videoId: "XoiOOiuH88I",
-    title: "Tyla - Water (Official Music Video)",
-    author: { name: "Tyla" },
-    timestamp: "3:20",
-    views: 280000000,
-    ago: "1 year ago",
-    thumbnail: "https://i.ytimg.com/vi/XoiOOiuH88I/hqdefault.jpg",
+    videoId: "O5aX7_yZ8zE",
+    title: "Asake, Wizkid - MMS (Official Visualizer)",
+    author: { name: "Asake" },
+    timestamp: "3:40",
+    views: 42000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/O5aX7_yZ8zE/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/97a544b8ee76a77ca519a911a37c00e1/500x500-000000-80-0-0.jpg",
     category: "Afrobeats"
   },
+
+  // 6. Wizkid - Latest 2024 Releases
   {
-    videoId: "crtQSTYWtqE",
-    title: "Ayra Starr - Rush (Official Music Video)",
-    author: { name: "Ayra Starr" },
-    timestamp: "3:05",
-    views: 380000000,
-    ago: "2 years ago",
-    thumbnail: "https://i.ytimg.com/vi/crtQSTYWtqE/hqdefault.jpg",
+    videoId: "M5u9N1L2q3w",
+    title: "Wizkid - Piece of My Heart ft. Brent Faiyaz (Official Video)",
+    author: { name: "Wizkid" },
+    timestamp: "3:46",
+    views: 29000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/M5u9N1L2q3w/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/993a408798ca7cf4db0566e133e9d40b/500x500-000000-80-0-0.jpg",
     category: "Afrobeats"
   },
   {
@@ -139,212 +260,209 @@ export const CURATED_TRACKS: Track[] = [
     title: "Wizkid - Essence ft. Tems (Official Video)",
     author: { name: "Wizkid" },
     timestamp: "4:08",
-    views: 190000000,
-    ago: "3 years ago",
+    views: 195000000,
+    ago: "Global Hit",
+    releaseYear: 2021,
     thumbnail: "https://i.ytimg.com/vi/jipQ_BKTe-g/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/993a408798ca7cf4db0566e133e9d40b/500x500-000000-80-0-0.jpg",
     category: "Afrobeats"
   },
+
+  // 7. Eminem - The Death of Slim Shady (2024)
+  {
+    videoId: "22tVWwmTie8",
+    title: "Eminem - Houdini [Official Music Video]",
+    author: { name: "Eminem" },
+    timestamp: "4:05",
+    views: 240000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/22tVWwmTie8/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/19cc5b1d30327f27ec4e8eec676a0860/500x500-000000-80-0-0.jpg",
+    category: "Hip-Hop"
+  },
+  {
+    videoId: "vXf3C3E4Z1w",
+    title: "Eminem - Tobey feat. Big Sean & BabyTron [Official Music Video]",
+    author: { name: "Eminem" },
+    timestamp: "4:45",
+    views: 65000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/vXf3C3E4Z1w/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/19cc5b1d30327f27ec4e8eec676a0860/500x500-000000-80-0-0.jpg",
+    category: "Hip-Hop"
+  },
+
+  // 8. Taylor Swift - The Tortured Poets Department (2024)
+  {
+    videoId: "q3zqJs7J240",
+    title: "Taylor Swift - Fortnight (feat. Post Malone) (Official Music Video)",
+    author: { name: "Taylor Swift" },
+    timestamp: "4:09",
+    views: 165000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/q3zqJs7J240/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/20703dd7f3f6e1f0e4bbf0cb92e858db/500x500-000000-80-0-0.jpg",
+    category: "Pop"
+  },
+  {
+    videoId: "b1kbLwvqugk",
+    title: "Taylor Swift - Anti-Hero (Official Music Video)",
+    author: { name: "Taylor Swift" },
+    timestamp: "3:21",
+    views: 210000000,
+    ago: "Recent Hit",
+    releaseYear: 2022,
+    thumbnail: "https://i.ytimg.com/vi/b1kbLwvqugk/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/20703dd7f3f6e1f0e4bbf0cb92e858db/500x500-000000-80-0-0.jpg",
+    category: "Pop"
+  },
+
+  // 9. Teddy Swims - I've Tried Everything But Therapy (2024)
+  {
+    videoId: "GZ3zL7De6_c",
+    title: "Teddy Swims - Lose Control (Official Music Video)",
+    author: { name: "Teddy Swims" },
+    timestamp: "3:30",
+    views: 295000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/GZ3zL7De6_c/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/672eb4cf78c2e648f02931100344d57c/500x500-000000-80-0-0.jpg",
+    category: "R&B"
+  },
+  {
+    videoId: "8aA7hU0k7mE",
+    title: "Teddy Swims - The Door (Official Music Video)",
+    author: { name: "Teddy Swims" },
+    timestamp: "3:32",
+    views: 110000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/8aA7hU0k7mE/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/672eb4cf78c2e648f02931100344d57c/500x500-000000-80-0-0.jpg",
+    category: "R&B"
+  },
+
+  // 10. Chappell Roan - The Rise and Fall of a Midwest Princess (2024)
+  {
+    videoId: "1RKqOmSkGgM",
+    title: "Chappell Roan - Good Luck, Babe! (Official Lyric Video)",
+    author: { name: "Chappell Roan" },
+    timestamp: "3:38",
+    views: 180000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/1RKqOmSkGgM/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/a2a6efcae137f6cb2996d9f9a0a1496a/500x500-000000-80-0-0.jpg",
+    category: "Pop"
+  },
+  {
+    videoId: "A_jN_8F9Kz0",
+    title: "Chappell Roan - HOT TO GO! (Official Music Video)",
+    author: { name: "Chappell Roan" },
+    timestamp: "3:04",
+    views: 95000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/A_jN_8F9Kz0/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/a2a6efcae137f6cb2996d9f9a0a1496a/500x500-000000-80-0-0.jpg",
+    category: "Pop"
+  },
+
+  // 11. Lady Gaga & Bruno Mars (2024)
+  {
+    videoId: "kPa7bsKwL-8",
+    title: "Lady Gaga, Bruno Mars - Die With A Smile (Official Music Video)",
+    author: { name: "Lady Gaga & Bruno Mars" },
+    timestamp: "4:11",
+    views: 480000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/kPa7bsKwL-8/hqdefault.jpg",
+    category: "Pop"
+  },
+
+  // 12. Shaboozey - A Bar Song (Tipsy)
+  {
+    videoId: "t7bQwAtVlZg",
+    title: "Shaboozey - A Bar Song (Tipsy) [Official Music Video]",
+    author: { name: "Shaboozey" },
+    timestamp: "2:51",
+    views: 260000000,
+    ago: "2024",
+    releaseYear: 2024,
+    thumbnail: "https://i.ytimg.com/vi/t7bQwAtVlZg/hqdefault.jpg",
+    category: "Hip-Hop"
+  },
+
+  // 13. Ed Sheeran - Recent & Timeless
   {
     videoId: "2Vv-BfVoq4g",
     title: "Ed Sheeran - Perfect (Official Music Video)",
     author: { name: "Ed Sheeran" },
     timestamp: "4:39",
     views: 3700000000,
-    ago: "6 years ago",
+    ago: "Top Classic",
+    releaseYear: 2017,
     thumbnail: "https://i.ytimg.com/vi/2Vv-BfVoq4g/hqdefault.jpg",
-    category: "Acoustic"
-  },
-
-  // Latin
-  {
-    videoId: "kJQP7kiw5Fk",
-    title: "Luis Fonsi - Despacito ft. Daddy Yankee",
-    author: { name: "Luis Fonsi" },
-    timestamp: "4:41",
-    views: 8400000000,
-    ago: "7 years ago",
-    thumbnail: "https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg",
-    category: "Latin"
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/57a7d45763df3989c09d57a918a0026f/500x500-000000-80-0-0.jpg",
+    category: "Pop"
   },
   {
-    videoId: "wnJ6LuUFpMo",
-    title: "J Balvin, Willy William - Mi Gente (Official Video)",
-    author: { name: "J Balvin" },
-    timestamp: "3:05",
-    views: 3300000000,
-    ago: "6 years ago",
-    thumbnail: "https://i.ytimg.com/vi/wnJ6LuUFpMo/hqdefault.jpg",
-    category: "Latin"
-  },
-  {
-    videoId: "p7bfOZek9t4",
-    title: "Shakira - Waka Waka (This Time for Africa)",
-    author: { name: "Shakira" },
-    timestamp: "3:30",
-    views: 3900000000,
-    ago: "13 years ago",
-    thumbnail: "https://i.ytimg.com/vi/p7bfOZek9t4/hqdefault.jpg",
-    category: "Latin"
-  },
-
-  // Rock
-  {
-    videoId: "fJ9rUzIMcZQ",
-    title: "Queen - Bohemian Rhapsody (Official Video Remastered)",
-    author: { name: "Queen Official" },
-    timestamp: "5:59",
-    views: 1680000000,
-    ago: "15 years ago",
-    thumbnail: "https://i.ytimg.com/vi/fJ9rUzIMcZQ/hqdefault.jpg",
-    category: "Rock"
-  },
-  {
-    videoId: "hTWKbfoikeg",
-    title: "Nirvana - Smells Like Teen Spirit (Official Music Video)",
-    author: { name: "Nirvana" },
-    timestamp: "4:38",
-    views: 1800000000,
-    ago: "14 years ago",
-    thumbnail: "https://i.ytimg.com/vi/hTWKbfoikeg/hqdefault.jpg",
-    category: "Rock"
-  },
-  {
-    videoId: "1w7OgIMMRc4",
-    title: "Guns N' Roses - Sweet Child O' Mine (Official Music Video)",
-    author: { name: "Guns N' Roses" },
-    timestamp: "5:02",
-    views: 1600000000,
-    ago: "14 years ago",
-    thumbnail: "https://i.ytimg.com/vi/1w7OgIMMRc4/hqdefault.jpg",
-    category: "Rock"
-  },
-  {
-    videoId: "kXYiU_JCYtU",
-    title: "Linkin Park - Numb (Official Music Video)",
-    author: { name: "Linkin Park" },
-    timestamp: "3:07",
-    views: 2200000000,
-    ago: "17 years ago",
-    thumbnail: "https://i.ytimg.com/vi/kXYiU_JCYtU/hqdefault.jpg",
-    category: "Rock"
-  },
-
-  // Hip-Hop
-  {
-    videoId: "uelHwf8o7_U",
-    title: "Eminem - Love The Way You Lie ft. Rihanna",
-    author: { name: "EminemMusic" },
-    timestamp: "4:26",
-    views: 2800000000,
-    ago: "13 years ago",
-    thumbnail: "https://i.ytimg.com/vi/uelHwf8o7_U/hqdefault.jpg",
-    category: "Hip-Hop"
-  },
-  {
-    videoId: "_Yhyp-_hX2s",
-    title: "Eminem - Lose Yourself [Official Music Video]",
-    author: { name: "EminemMusic" },
-    timestamp: "5:20",
-    views: 1400000000,
-    ago: "8 years ago",
-    thumbnail: "https://i.ytimg.com/vi/_Yhyp-_hX2s/hqdefault.jpg",
-    category: "Hip-Hop"
-  },
-  {
-    videoId: "tvTRZJ-4EyI",
-    title: "Kendrick Lamar - HUMBLE.",
-    author: { name: "Kendrick Lamar" },
-    timestamp: "3:03",
-    views: 1000000000,
-    ago: "7 years ago",
-    thumbnail: "https://i.ytimg.com/vi/tvTRZJ-4EyI/hqdefault.jpg",
-    category: "Hip-Hop"
-  },
-  {
-    videoId: "uxpDa-c-4Mc",
-    title: "Drake - Hotline Bling",
-    author: { name: "Drake" },
-    timestamp: "4:55",
-    views: 2000000000,
-    ago: "8 years ago",
-    thumbnail: "https://i.ytimg.com/vi/uxpDa-c-4Mc/hqdefault.jpg",
-    category: "Hip-Hop"
-  },
-
-  // R&B
-  {
-    videoId: "4NRXx6U8ABQ",
-    title: "The Weeknd - Blinding Lights (Official Video)",
-    author: { name: "The Weeknd" },
-    timestamp: "4:22",
-    views: 800000000,
-    ago: "4 years ago",
-    thumbnail: "https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg",
-    category: "R&B"
-  },
-  {
-    videoId: "XXYlFuWEuKI",
-    title: "The Weeknd - Save Your Tears (Official Music Video)",
-    author: { name: "The Weeknd" },
-    timestamp: "4:08",
-    views: 1300000000,
-    ago: "3 years ago",
-    thumbnail: "https://i.ytimg.com/vi/XXYlFuWEuKI/hqdefault.jpg",
-    category: "R&B"
-  },
-  {
-    videoId: "C-u5WLJ9Yk4",
-    title: "Britney Spears - ...Baby One More Time (Official Video)",
-    author: { name: "Britney Spears" },
-    timestamp: "3:56",
-    views: 890000000,
-    ago: "14 years ago",
-    thumbnail: "https://i.ytimg.com/vi/C-u5WLJ9Yk4/hqdefault.jpg",
-    category: "R&B"
-  },
-
-  // Acoustic
-  {
-    videoId: "lp-EO5I60KA",
-    title: "Ed Sheeran - Thinking Out Loud (Official Music Video)",
+    videoId: "JGwWNGJdvx8",
+    title: "Ed Sheeran - Shape of You (Official Music Video)",
     author: { name: "Ed Sheeran" },
-    timestamp: "4:56",
-    views: 3700000000,
-    ago: "9 years ago",
-    thumbnail: "https://i.ytimg.com/vi/lp-EO5I60KA/hqdefault.jpg",
-    category: "Acoustic"
+    timestamp: "4:23",
+    views: 6200000000,
+    ago: "Global Diamond",
+    releaseYear: 2017,
+    thumbnail: "https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg",
+    artistImage: "https://cdn-images.dzcdn.net/images/artist/57a7d45763df3989c09d57a918a0026f/500x500-000000-80-0-0.jpg",
+    category: "Pop"
   },
+
+  // 14. Tyla - Water & Jump
   {
-    videoId: "RBumgq5yVrA",
-    title: "Passenger | Let Her Go (Official Video)",
-    author: { name: "Passenger" },
-    timestamp: "4:14",
-    views: 3600000000,
-    ago: "11 years ago",
-    thumbnail: "https://i.ytimg.com/vi/RBumgq5yVrA/hqdefault.jpg",
-    category: "Acoustic"
+    videoId: "XoiOOiuH88I",
+    title: "Tyla - Water (Official Music Video)",
+    author: { name: "Tyla" },
+    timestamp: "3:20",
+    views: 310000000,
+    ago: "Recent Hit",
+    releaseYear: 2023,
+    thumbnail: "https://i.ytimg.com/vi/XoiOOiuH88I/hqdefault.jpg",
+    category: "Afrobeats"
   },
+
+  // 15. Rema & Selena Gomez
   {
-    videoId: "hLQl3WQQoQ0",
-    title: "Adele - Someone Like You (Official Music Video)",
-    author: { name: "Adele" },
-    timestamp: "4:44",
-    views: 2100000000,
-    ago: "12 years ago",
-    thumbnail: "https://i.ytimg.com/vi/hLQl3WQQoQ0/hqdefault.jpg",
-    category: "Acoustic"
+    videoId: "WcIcVapfqXw",
+    title: "Rema, Selena Gomez - Calm Down (Official Music Video)",
+    author: { name: "Rema" },
+    timestamp: "3:59",
+    views: 920000000,
+    ago: "Global Hit",
+    releaseYear: 2022,
+    thumbnail: "https://i.ytimg.com/vi/WcIcVapfqXw/hqdefault.jpg",
+    category: "Afrobeats"
   }
 ];
 
-/**
- * Helper to get curated tracks filtered by category
- */
 export function getCuratedTracksByCategory(category: string): Track[] {
-  if (!category || category === 'all' || category.toLowerCase() === 'trending') {
-    return CURATED_TRACKS;
-  }
-  const filtered = CURATED_TRACKS.filter(
-    (t) => t.category?.toLowerCase() === category.toLowerCase()
-  );
-  return filtered.length > 0 ? filtered : CURATED_TRACKS;
+  const cat = (category || 'all').toLowerCase();
+  if (cat === 'all') return CURATED_TRACKS;
+  return CURATED_TRACKS.filter(t => (t.category || '').toLowerCase() === cat);
+}
+
+export function findArtistProfile(name: string): ArtistProfile | null {
+  const query = (name || '').toLowerCase().trim();
+  if (!query) return null;
+  return POPULAR_ARTISTS.find(
+    a => a.name.toLowerCase() === query || 
+         a.name.toLowerCase().includes(query) || 
+         query.includes(a.name.toLowerCase())
+  ) || null;
 }

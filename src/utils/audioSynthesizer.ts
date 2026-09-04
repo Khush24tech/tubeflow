@@ -12,6 +12,8 @@ export type PlaybackState = 'unstarted' | 'ended' | 'playing' | 'paused' | 'buff
 
 class RealYouTubePlayerEngine {
   private ytPlayer: any = null;
+  private html5Audio: HTMLAudioElement | null = null;
+  private isUsingHtml5 = false;
   private isApiReady = false;
   private isPlayerReady = false;
   private pendingVideoId: string | null = null;
@@ -29,6 +31,37 @@ class RealYouTubePlayerEngine {
 
   constructor() {
     this.loadYouTubeIframeAPI();
+    if (typeof window !== 'undefined') {
+      this.html5Audio = new Audio();
+      this.html5Audio.addEventListener('timeupdate', () => {
+        if (this.isUsingHtml5 && this.html5Audio) {
+          this.currentTime = this.html5Audio.currentTime;
+          if (this.html5Audio.duration && !isNaN(this.html5Audio.duration)) {
+            this.duration = this.html5Audio.duration;
+          }
+          this.onTimeUpdateCallback?.(this.currentTime, this.duration);
+        }
+      });
+      this.html5Audio.addEventListener('ended', () => {
+        if (this.isUsingHtml5) {
+          this.isPlaying = false;
+          this.onStateChangeCallback?.('ended');
+          this.onEndCallback?.();
+        }
+      });
+      this.html5Audio.addEventListener('pause', () => {
+        if (this.isUsingHtml5) {
+          this.isPlaying = false;
+          this.onStateChangeCallback?.('paused');
+        }
+      });
+      this.html5Audio.addEventListener('play', () => {
+        if (this.isUsingHtml5) {
+          this.isPlaying = true;
+          this.onStateChangeCallback?.('playing');
+        }
+      });
+    }
   }
 
   private loadYouTubeIframeAPI() {
@@ -212,15 +245,18 @@ class RealYouTubePlayerEngine {
     }
   }
 
+  private activePreviewUrl: string | null = null;
+
   /**
-   * Play real song from YouTube
+   * Play real song from YouTube or HTML5 audio preview
    */
   public play(
     videoIdOrTitle: string,
     fallbackDuration: number = 210,
     onProgress?: (time: number, duration: number) => void,
     onEnd?: () => void,
-    onStateChange?: (state: PlaybackState) => void
+    onStateChange?: (state: PlaybackState) => void,
+    previewAudioUrl?: string
   ) {
     this.onTimeUpdateCallback = onProgress || null;
     this.onEndCallback = onEnd || null;
@@ -228,6 +264,7 @@ class RealYouTubePlayerEngine {
     this.duration = fallbackDuration;
     this.currentTime = 0;
     this.isPlaying = true;
+    this.activePreviewUrl = previewAudioUrl || null;
 
     // Clean video ID
     let videoId = videoIdOrTitle;
@@ -235,6 +272,27 @@ class RealYouTubePlayerEngine {
       videoId = videoId.split('v=')[1]?.split('&')[0] || videoId;
     } else if (videoId.includes('youtu.be/')) {
       videoId = videoId.split('youtu.be/')[1]?.split('?')[0] || videoId;
+    }
+
+    // Check if this is a valid 11-character YouTube video ID
+    const isValidYouTubeId = /^[a-zA-Z0-9_-]{11}$/.test(videoId);
+
+    // If not a valid YouTube ID, but we have a direct audio preview stream
+    if (!isValidYouTubeId && previewAudioUrl && this.html5Audio) {
+      this.isUsingHtml5 = true;
+      if (this.ytPlayer && typeof this.ytPlayer.pauseVideo === 'function') {
+        try { this.ytPlayer.pauseVideo(); } catch {}
+      }
+      this.html5Audio.src = previewAudioUrl;
+      this.html5Audio.volume = this.volume / 100;
+      this.html5Audio.play().catch(() => {});
+      return;
+    }
+
+    // Normal YouTube Playback
+    this.isUsingHtml5 = false;
+    if (this.html5Audio) {
+      this.html5Audio.pause();
     }
 
     this.ensureHostElement();
@@ -257,6 +315,9 @@ class RealYouTubePlayerEngine {
   public pause() {
     this.isPlaying = false;
     this.stopProgressTracking();
+    if (this.isUsingHtml5 && this.html5Audio) {
+      this.html5Audio.pause();
+    }
     if (this.ytPlayer && typeof this.ytPlayer.pauseVideo === 'function') {
       try {
         this.ytPlayer.pauseVideo();
@@ -266,6 +327,10 @@ class RealYouTubePlayerEngine {
 
   public resume() {
     this.isPlaying = true;
+    if (this.isUsingHtml5 && this.html5Audio) {
+      this.html5Audio.play().catch(() => {});
+      return;
+    }
     if (this.ytPlayer && typeof this.ytPlayer.playVideo === 'function') {
       try {
         this.ytPlayer.playVideo();
@@ -276,6 +341,11 @@ class RealYouTubePlayerEngine {
 
   public seek(seconds: number) {
     this.currentTime = seconds;
+    if (this.isUsingHtml5 && this.html5Audio) {
+      this.html5Audio.currentTime = seconds;
+      this.onTimeUpdateCallback?.(seconds, this.duration);
+      return;
+    }
     if (this.ytPlayer && typeof this.ytPlayer.seekTo === 'function') {
       try {
         this.ytPlayer.seekTo(seconds, true);
@@ -287,6 +357,9 @@ class RealYouTubePlayerEngine {
   public setVolume(val: number) {
     const percent = Math.round(Math.max(0, Math.min(val * 100, 100)));
     this.volume = percent;
+    if (this.html5Audio) {
+      this.html5Audio.volume = percent / 100;
+    }
     if (this.ytPlayer && typeof this.ytPlayer.setVolume === 'function') {
       try {
         this.ytPlayer.setVolume(percent);

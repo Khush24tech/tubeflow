@@ -10,7 +10,7 @@ import yts from "yt-search";
 import ytdl from "@distube/ytdl-core";
 import { Innertube } from "youtubei.js";
 import { getFirebaseAdminApp, getFirebaseAdminStatus, verifyFirebaseIdToken } from "./src/server/firebaseAdmin";
-import { CURATED_TRACKS, getCuratedTracksByCategory } from "./src/data/curatedTracks";
+import { CURATED_TRACKS, getCuratedTracksByCategory, findArtistProfile } from "./src/data/curatedTracks";
 
 const app = express();
 const PORT = 3000;
@@ -143,9 +143,12 @@ app.get("/api/search", async (req: Request, res: Response) => {
         if (videos.length >= 24) break;
       }
 
+      const matchedArtist = findArtistProfile(query);
+
       if (videos.length > 0) {
         return res.json({
           results: videos,
+          artist: matchedArtist || undefined,
           type: "search",
           query,
           count: videos.length
@@ -157,6 +160,7 @@ app.get("/api/search", async (req: Request, res: Response) => {
 
     // 3. Curated filter fallback
     const qLower = query.toLowerCase();
+    const matchedArtist = findArtistProfile(query);
     const filtered = CURATED_TRENDING.filter(item => {
       const t = parseSafeTitle(item.title).toLowerCase();
       const a = parseSafeAuthor(item.author?.name).toLowerCase();
@@ -165,15 +169,18 @@ app.get("/api/search", async (req: Request, res: Response) => {
 
     return res.json({
       results: filtered.length > 0 ? filtered : CURATED_TRENDING,
+      artist: matchedArtist || undefined,
       fallback: true,
       query
     });
   } catch (error: any) {
     console.error("Search error:", error);
+    const fallbackQ = (req.query.q as string) || "";
     return res.json({
       results: CURATED_TRENDING,
+      artist: findArtistProfile(fallbackQ) || undefined,
       fallback: true,
-      query: (req.query.q as string) || ""
+      query: fallbackQ
     });
   }
 });

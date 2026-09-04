@@ -1,3 +1,12 @@
+export interface ArtistProfile {
+  id?: string | number;
+  name: string;
+  picture: string;
+  fans?: number;
+  genre?: string;
+  verified?: boolean;
+}
+
 export interface Track {
   videoId: string;
   title: string;
@@ -11,6 +20,9 @@ export interface Track {
   description?: string;
   category?: string;
   url?: string;
+  previewUrl?: string;
+  artistImage?: string;
+  releaseYear?: string | number;
 }
 
 export interface FormatOption {
