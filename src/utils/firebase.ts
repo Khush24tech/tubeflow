@@ -13,7 +13,7 @@ import {
 } from 'firebase/auth';
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyCwDkRcPjHE3ptPGpjd6BS2C5z57aYB39s",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyCwDkRcPjHE3ptPGpjd6BS2C5z57aYB39s",
   authDomain: "tubeflow-21845.firebaseapp.com",
   projectId: "tubeflow-21845",
   storageBucket: "tubeflow-21845.firebasestorage.app",

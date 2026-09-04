@@ -9,6 +9,8 @@ import yts from "yt-search";
 // @ts-ignore
 import ytdl from "@distube/ytdl-core";
 import { Innertube } from "youtubei.js";
+import { getFirebaseAdminApp, getFirebaseAdminStatus, verifyFirebaseIdToken } from "./src/server/firebaseAdmin";
+import { CURATED_TRACKS, getCuratedTracksByCategory } from "./src/data/curatedTracks";
 
 const app = express();
 const PORT = 3000;
@@ -32,158 +34,7 @@ function extractVideoId(query: string): string | null {
 }
 
 // Curated top trending tracks fallback & starter list
-const CURATED_TRENDING = [
-  {
-    videoId: "H5v3kku4y6Q",
-    title: "Harry Styles - As It Was (Official Video)",
-    author: { name: "Harry Styles" },
-    timestamp: "2:47",
-    views: 680000000,
-    ago: "1 year ago",
-    thumbnail: "https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg",
-    category: "Pop"
-  },
-  {
-    videoId: "WcIcVapfqXw",
-    title: "Rema, Selena Gomez - Calm Down (Official Music Video)",
-    author: { name: "Rema" },
-    timestamp: "3:59",
-    views: 890000000,
-    ago: "1 year ago",
-    thumbnail: "https://i.ytimg.com/vi/WcIcVapfqXw/hqdefault.jpg",
-    category: "Afrobeats"
-  },
-  {
-    videoId: "G7KNmW9a75Y",
-    title: "Miley Cyrus - Flowers (Official Video)",
-    author: { name: "Miley Cyrus" },
-    timestamp: "3:20",
-    views: 740000000,
-    ago: "1 year ago",
-    thumbnail: "https://i.ytimg.com/vi/G7KNmW9a75Y/hqdefault.jpg",
-    category: "Pop"
-  },
-  {
-    videoId: "Ecl8A4olZYs",
-    title: "Burna Boy - Last Last [Official Music Video]",
-    author: { name: "Burna Boy" },
-    timestamp: "2:52",
-    views: 260000000,
-    ago: "2 years ago",
-    thumbnail: "https://i.ytimg.com/vi/Ecl8A4olZYs/hqdefault.jpg",
-    category: "Afrobeats"
-  },
-  {
-    videoId: "b1kbLwvqugk",
-    title: "Taylor Swift - Anti-Hero (Official Music Video)",
-    author: { name: "Taylor Swift" },
-    timestamp: "3:21",
-    views: 195000000,
-    ago: "1 year ago",
-    thumbnail: "https://i.ytimg.com/vi/b1kbLwvqugk/hqdefault.jpg",
-    category: "Pop"
-  },
-  {
-    videoId: "fJ9rUzIMcZQ",
-    title: "Queen - Bohemian Rhapsody (Official Video Remastered)",
-    author: { name: "Queen Official" },
-    timestamp: "5:59",
-    views: 1680000000,
-    ago: "15 years ago",
-    thumbnail: "https://i.ytimg.com/vi/fJ9rUzIMcZQ/hqdefault.jpg",
-    category: "Rock"
-  },
-  {
-    videoId: "kJQP7kiw5Fk",
-    title: "Luis Fonsi - Despacito ft. Daddy Yankee",
-    author: { name: "Luis Fonsi" },
-    timestamp: "4:41",
-    views: 8400000000,
-    ago: "7 years ago",
-    thumbnail: "https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg",
-    category: "Latin"
-  },
-  {
-    videoId: "JGwWNGJdvx8",
-    title: "Ed Sheeran - Shape of You (Official Music Video)",
-    author: { name: "Ed Sheeran" },
-    timestamp: "4:23",
-    views: 6200000000,
-    ago: "7 years ago",
-    thumbnail: "https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg",
-    category: "Pop"
-  },
-  {
-    videoId: "YQHsXMglC9A",
-    title: "Adele - Hello (Official Music Video)",
-    author: { name: "Adele" },
-    timestamp: "6:07",
-    views: 3100000000,
-    ago: "8 years ago",
-    thumbnail: "https://i.ytimg.com/vi/YQHsXMglC9A/hqdefault.jpg",
-    category: "Pop"
-  },
-  {
-    videoId: "09R8_2nJtjg",
-    title: "Maroon 5 - Sugar (Official Music Video)",
-    author: { name: "Maroon 5" },
-    timestamp: "5:01",
-    views: 4000000000,
-    ago: "9 years ago",
-    thumbnail: "https://i.ytimg.com/vi/09R8_2nJtjg/hqdefault.jpg",
-    category: "Pop"
-  },
-  {
-    videoId: "hT_nvWreIhg",
-    title: "OneRepublic - Counting Stars (Official Music Video)",
-    author: { name: "OneRepublic" },
-    timestamp: "4:43",
-    views: 4000000000,
-    ago: "10 years ago",
-    thumbnail: "https://i.ytimg.com/vi/hT_nvWreIhg/hqdefault.jpg",
-    category: "Pop"
-  },
-  {
-    videoId: "uelHwf8o7_U",
-    title: "Eminem - Love The Way You Lie ft. Rihanna",
-    author: { name: "EminemMusic" },
-    timestamp: "4:26",
-    views: 2800000000,
-    ago: "13 years ago",
-    thumbnail: "https://i.ytimg.com/vi/uelHwf8o7_U/hqdefault.jpg",
-    category: "Hip-Hop"
-  },
-  {
-    videoId: "XoiOOiuH88I",
-    title: "Tyla - Water (Official Music Video)",
-    author: { name: "Tyla" },
-    timestamp: "3:20",
-    views: 280000000,
-    ago: "1 year ago",
-    thumbnail: "https://i.ytimg.com/vi/XoiOOiuH88I/hqdefault.jpg",
-    category: "Afrobeats"
-  },
-  {
-    videoId: "crtQSTYWtqE",
-    title: "Ayra Starr - Rush (Official Music Video)",
-    author: { name: "Ayra Starr" },
-    timestamp: "3:05",
-    views: 380000000,
-    ago: "2 years ago",
-    thumbnail: "https://i.ytimg.com/vi/crtQSTYWtqE/hqdefault.jpg",
-    category: "Afrobeats"
-  },
-  {
-    videoId: "jipQ_BKTe-g",
-    title: "Wizkid - Essence ft. Tems (Official Video)",
-    author: { name: "Wizkid" },
-    timestamp: "4:08",
-    views: 190000000,
-    ago: "3 years ago",
-    thumbnail: "https://i.ytimg.com/vi/jipQ_BKTe-g/hqdefault.jpg",
-    category: "Afrobeats"
-  }
-];
+const CURATED_TRENDING = CURATED_TRACKS;
 
 // Safe text parsers to prevent TypeError: title.trim is not a function
 function parseSafeTitle(rawTitle: any): string {
@@ -702,6 +553,32 @@ app.get("/api/download", async (req: Request, res: Response) => {
       return res.status(500).json({ error: "Failed to process media stream" });
     }
   }
+});
+
+// 4.5 Firebase Admin Authentication Routes
+app.get("/api/auth/status", (_req, res) => {
+  const status = getFirebaseAdminStatus();
+  res.json(status);
+});
+
+app.post("/api/auth/verify", async (req, res) => {
+  const { idToken } = req.body || {};
+  if (!idToken) {
+    return res.status(400).json({ error: "Missing idToken parameter" });
+  }
+
+  const decoded = await verifyFirebaseIdToken(idToken);
+  if (!decoded) {
+    return res.status(401).json({ error: "Invalid or expired token, or Admin SDK not initialized" });
+  }
+
+  return res.json({
+    valid: true,
+    uid: decoded.uid,
+    email: decoded.email,
+    name: decoded.name,
+    picture: decoded.picture
+  });
 });
 
 // 5. SEO Routes: sitemap.xml & robots.txt

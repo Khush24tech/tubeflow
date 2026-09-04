@@ -8,7 +8,10 @@ import {
   Loader2, 
   ShieldCheck, 
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  Copy,
+  ExternalLink,
+  Globe
 } from 'lucide-react';
 import { 
   signInWithGoogle, 
@@ -35,6 +38,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [unauthorizedDomain, setUnauthorizedDomain] = useState<string | null>(null);
+  const [copiedDomain, setCopiedDomain] = useState(false);
 
   if (!isOpen) return null;
 
@@ -44,6 +49,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setDisplayName('');
     setError(null);
     setSuccessMsg(null);
+    setUnauthorizedDomain(null);
+    setCopiedDomain(false);
   };
 
   const handleClose = () => {
@@ -51,9 +58,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     onClose();
   };
 
+  const handleCopyDomain = () => {
+    if (unauthorizedDomain) {
+      navigator.clipboard.writeText(unauthorizedDomain);
+      setCopiedDomain(true);
+      setTimeout(() => setCopiedDomain(false), 2000);
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     setError(null);
     setSuccessMsg(null);
+    setUnauthorizedDomain(null);
     setGoogleLoading(true);
     try {
       const user = await signInWithGoogle();
@@ -64,7 +80,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }, 700);
     } catch (err: any) {
       console.error('Google Sign In failed:', err);
-      if (err.code === 'auth/popup-closed-by-user') {
+      if (err.code === 'auth/unauthorized-domain') {
+        const domain = typeof window !== 'undefined' ? window.location.hostname : '';
+        setUnauthorizedDomain(domain);
+        setError(`This domain (${domain}) is not authorized in your Firebase Console yet.`);
+      } else if (err.code === 'auth/popup-closed-by-user') {
         setError('Sign-in cancelled. Please complete the Google sign-in window.');
       } else if (err.code === 'auth/popup-blocked') {
         setError('Pop-up was blocked by browser. Please allow popups for this site.');
@@ -173,6 +193,61 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <div className="p-3.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-start gap-2.5">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
               <span>{error}</span>
+            </div>
+          )}
+
+          {unauthorizedDomain && (
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs space-y-3">
+              <div className="flex items-start gap-2.5">
+                <Globe className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-amber-300">How to Fix in Firebase Console (1 Minute):</p>
+                  <p className="text-[11px] text-amber-200/90 mt-1 leading-relaxed">
+                    Firebase blocks Google sign-in until your app's current domain is listed under <span className="font-semibold text-white">Authorized Domains</span>.
+                  </p>
+                </div>
+              </div>
+
+              {/* Domain Copy Field */}
+              <div className="space-y-1.5">
+                <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
+                  1. Copy this domain:
+                </span>
+                <div className="flex items-center justify-between gap-2 p-2 px-3 rounded-xl bg-[#0b0f17] border border-amber-500/25 font-mono text-[11px] text-amber-100">
+                  <span className="truncate select-all">{unauthorizedDomain}</span>
+                  <button
+                    type="button"
+                    onClick={handleCopyDomain}
+                    className="px-2.5 py-1 rounded-lg bg-amber-500/25 hover:bg-amber-500/40 text-amber-200 flex items-center gap-1.5 shrink-0 font-sans text-xs cursor-pointer transition-colors"
+                  >
+                    {copiedDomain ? (
+                      <>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="font-semibold text-emerald-300">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span>Copy Domain</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Direct Link */}
+              <div className="pt-1 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-t border-amber-500/20 text-[11px]">
+                <span className="text-slate-400">2. Paste it in Firebase Auth Settings:</span>
+                <a
+                  href="https://console.firebase.google.com/project/tubeflow-21845/authentication/settings"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold underline underline-offset-2 shrink-0 cursor-pointer"
+                >
+                  Open Firebase Settings
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
             </div>
           )}
 

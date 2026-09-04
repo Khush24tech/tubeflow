@@ -37,12 +37,14 @@ import { registerServiceWorker } from './utils/registerSW';
 import { audioPlayer, parseDurationToSeconds } from './utils/audioSynthesizer';
 import { subscribeToAuth, logOut } from './utils/firebase';
 import { User } from 'firebase/auth';
+import { CURATED_TRACKS, getCuratedTracksByCategory } from './data/curatedTracks';
+import { performClientFallbackSearch } from './utils/clientSearch';
 
 export default function App() {
   // Main State
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Track[]>([]);
-  const [trendingTracks, setTrendingTracks] = useState<Track[]>([]);
+  const [trendingTracks, setTrendingTracks] = useState<Track[]>(CURATED_TRACKS);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [formatFilter, setFormatFilter] = useState<'all' | 'mp3' | 'mp4'>('all');
@@ -157,12 +159,18 @@ export default function App() {
     setIsLoading(true);
     try {
       const res = await fetch(`/api/trending?category=${encodeURIComponent(category)}`);
+      if (!res.ok) {
+        throw new Error(`API returned HTTP ${res.status}`);
+      }
       const data = await res.json();
-      if (data.trending && Array.isArray(data.trending)) {
+      if (data.trending && Array.isArray(data.trending) && data.trending.length > 0) {
         setTrendingTracks(data.trending);
+      } else {
+        setTrendingTracks(getCuratedTracksByCategory(category));
       }
     } catch (err) {
-      console.error('Failed to fetch trending tracks:', err);
+      console.warn('Backend trending API unavailable, using built-in curated tracks:', err);
+      setTrendingTracks(getCuratedTracksByCategory(category));
     } finally {
       setIsLoading(false);
     }
@@ -175,9 +183,12 @@ export default function App() {
 
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
+      if (!res.ok) {
+        throw new Error(`API returned HTTP ${res.status}`);
+      }
       const data = await res.json();
       
-      if (data.results && Array.isArray(data.results)) {
+      if (data.results && Array.isArray(data.results) && data.results.length > 0) {
         setResults(data.results);
         showToast(
           'Results Loaded',
@@ -185,19 +196,46 @@ export default function App() {
           'info'
         );
       } else {
-        setResults([]);
-        showToast('Notice', 'No matching results found. Try another keyword.', 'info');
+        // Try fallback if backend returned zero results
+        const fallbackResults = await performClientFallbackSearch(searchQuery);
+        setResults(fallbackResults);
+        if (fallbackResults.length > 0) {
+          showToast(
+            'Results Loaded',
+            `Showing ${fallbackResults.length} tracks matching "${searchQuery}"`,
+            'info'
+          );
+        } else {
+          setResults([]);
+          showToast('Notice', 'No matching results found. Try another keyword.', 'info');
+        }
       }
-
+    } catch (err) {
+      console.warn('Primary search API unreachable (e.g. GitHub Pages or offline), running client fallback search:', err);
+      try {
+        const fallbackResults = await performClientFallbackSearch(searchQuery);
+        setResults(fallbackResults);
+        if (fallbackResults.length > 0) {
+          showToast(
+            'Results Loaded',
+            `Showing ${fallbackResults.length} tracks matching "${searchQuery}"`,
+            'info'
+          );
+        } else {
+          setResults([]);
+          showToast('Notice', 'No matching tracks found. Try another keyword.', 'info');
+        }
+      } catch (fallbackErr) {
+        console.error('Fallback search error:', fallbackErr);
+        setResults(getCuratedTracksByCategory('all').slice(0, 10));
+        showToast('Notice', 'Showing top trending songs.', 'info');
+      }
+    } finally {
+      setIsLoading(false);
       // Smooth scroll to results
       setTimeout(() => {
         resultsSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
-    } catch (err) {
-      console.error('Search request error:', err);
-      showToast('Search Failed', 'Could not complete search. Please try again.', 'error');
-    } finally {
-      setIsLoading(false);
     }
   };
 
